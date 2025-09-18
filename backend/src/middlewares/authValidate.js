@@ -3,6 +3,8 @@ import { body ,validationResult } from "express-validator";
 const namePattern = /^[a-zA-Z\s.-]{2,50}$/;
 const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,20}$/;
 
+const phoneRegex = /^[6-9]\d{9}$/; // Indian numbers
+
 export const validateSignUp = [
     body('name')
     .notEmpty().withMessage('Name is required')
@@ -11,6 +13,9 @@ export const validateSignUp = [
     body('email')
     .notEmpty().withMessage('Email is required')
     .isEmail().withMessage('Please Enter Valide Email'),
+    body("phone")
+    .notEmpty().withMessage('phone is required')
+    .matches(phoneRegex).withMessage("Invalid phone number"),
     body('password')
     .notEmpty().withMessage('Password is Required')
     .isLength({min : 5}).withMessage('Password must be at least 5 characters')

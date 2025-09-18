@@ -1,27 +1,25 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
-import { createUser, findByEmailOrName ,findByEmail } from '../models/User.js';
+import { createUser ,findByEmail, findByEmailOrNameOrPhone } from '../models/User.js';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
 export const SignUp = async(req,res,next) =>{
     try{
-        const {name,email,password,role} = req.body;
-
-        const existing_user = await findByEmailOrName(name,email);
+        const {name,phone,email,password,role} = req.body;
+        
+        const existing_user = await findByEmailOrNameOrPhone(name,email,phone);
 
         if(existing_user){
             return res.status(409).json({
                 message : 'User already exists...',
             })
         }
-
+        
         const salt = await bcrypt.genSalt(12);
         const hashedPassword = await bcrypt.hash(password,salt);
         
-        console.log(hashedPassword,typeof(hashedPassword));
-        const user = await createUser(name,email,hashedPassword,role);
-
+        const user = await createUser({name,email,phone,hashedPassword,role});
 
         if(!user){
             throw new Error('user Not Created...');
@@ -66,11 +64,10 @@ export const Login = async(req,res,next) => {
         }
         
         const token = jwt.sign(
-            { id: user.id, name: user.name, email: user.email, role: user.role },
+            { id: user.id, name: user.name,phone: user.phone, email: user.email, role: user.role },
             JWT_SECRET,
             { expiresIn: '1h' }
         )
-
 
         return res.status(200).json({
             success : true,

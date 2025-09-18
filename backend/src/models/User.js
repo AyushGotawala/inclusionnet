@@ -1,14 +1,14 @@
 import pool from "../config/db.js";
 
-export const createUser = async(name,email,password,role) =>{
+export const createUser = async({name,email,phone,hashedPassword,role}) =>{
     const result = await pool.query(
-        'INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING *',
-        [name,email,password,role]
+        'INSERT INTO users (name, email, phone, password, role) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+        [name,email,phone,hashedPassword,role]
     );
     return result.rows[0];
 }
 
-export const findByEmailOrName = async (name,email) => {
+export const findByEmailOrNameOrPhone = async (name,email) => {
   const result = await pool.query(
     'SELECT * FROM users WHERE LOWER(email) = LOWER($1) OR LOWER(name) = LOWER($2)',
     [email, name]
