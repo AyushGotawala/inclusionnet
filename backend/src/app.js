@@ -14,15 +14,14 @@ app.use(cors());
 app.use(helmet());
 app.use(morgan('dev'));
 
+app.get('/',(req,res,next)=>{
+    res.status(200).send('<h1>Server is Running....</h1>')
+})
+
 app.use('/kyc/upload', express.static(path.join(process.cwd(), 'src/public/kyc/upload')));
 
 app.use('/api/auth',authRouter);
 app.use('/api',kycRouter);
 
 app.use(handleInvalidRoute);
-
-app.get('/',(req,res,next)=>{
-    res.status(200).send('<h1>Server is Running....</h1>')
-})
-
 export default app;

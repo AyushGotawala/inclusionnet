@@ -75,3 +75,19 @@ async function safeDelete(filePath) {
     console.warn(`Could not delete file ${filePath}:`, e.message);
   }
 }
+
+
+export const getAllPendingBorrowerKYC = async() =>{
+  const {rows} = await pool.query("SELECT * FROM borrower_profiles WHERE kyc_status = $1",['pending']);
+
+  return rows;
+}
+
+export const updateBorrowerKYC = async(id,status) =>{
+  const update_time = new Date(Date.now());
+  console.log(id,update_time,status)
+  const {rows} = await pool.query("UPDATE borrower_profiles SET kyc_status = $1,updated_at = $2 WHERE id = $3 RETURNING *",
+    [status,update_time,id]
+  );
+  return rows;
+}
