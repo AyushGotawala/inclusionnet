@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  BORROWER
+  LENDER
+  ADMIN
+}
+
+enum KycStatus {
+  pending
+  approved
+  rejected
+}
+
+model User {
+  id        Int              @id @default(autoincrement())
+  name      String
+  email     String           @unique
+  phone     String?
+  password  String
+  role      Role
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  borrowerProfile BorrowerProfile?
+  lenderProfile   LenderProfile?
+}
+
+model BorrowerProfile {
+  id                            Int       @id @default(autoincrement())
+  userId                        Int       @unique
+  full_name                     String
+  age                           Int?
+  gender                        String?
+  contact_number                String?
+  email                         String?
+  aadhaar_number                String?
+  pan_number                    String?
+  aadhaar_image                 String?
+  pan_image                     String?
+  employment_type               String?
+  monthly_income                Int?
+  years_of_job_stability        Int?
+  previous_loans                String?
+  loan_type                     String?
+  total_loan_amount_taken       Int?
+  current_outstanding_loan      Int?
+  loan_defaults_last_12_months  Int?
+  average_emi_per_month         Int?
+  missed_emi_payments           Int?
+  credit_card_repayment_behavior String?
+  approx_monthly_expenses       Int?
+  major_spending_categories     String?
+  maintains_savings_monthly     Boolean?
+  pays_bills                    Boolean?
+  types_of_bills                String?
+  missed_utility_payments       Int?
+  kyc_status                    KycStatus @default(pending)
+  created_at                    DateTime  @default(now())
+  updated_at                    DateTime  @default(now()) @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model LenderProfile {
+  id                   Int       @id @default(autoincrement())
+  userId               Int       @unique
+  aadhar_number        String?
+  pan_number           String?
+  aadhar_image_path    String?
+  pan_image_path       String?
+  available_funds      Int?
+  kyc_status           KycStatus @default(pending)
+  created_at           DateTime  @default(now())
+  updated_at           DateTime  @default(now()) @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}

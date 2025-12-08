@@ -1,6 +1,29 @@
-import pool from "../config/db.js";
+import pkg from "@prisma/client";
+const { PrismaClient } = pkg;
+import { PrismaPg } from '@prisma/adapter-pg';
+import pg from 'pg';
 import path from "path";
-import fs from 'fs/promises';
+import fs from "fs/promises";
+
+const { Pool } = pg;
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
+
+async function safeDelete(filePath) {
+  try {
+    const absolute = path.resolve(filePath);
+    await fs.unlink(absolute);
+  } catch (e) {
+    console.warn(`Could not delete file ${filePath}:`, e.message);
+  }
+}
+
+function toNumber(val) {
+  if (val === undefined || val === null || val === "") return null;
+  const n = Number(val);
+  return Number.isFinite(n) ? n : null;
+}
 
 export const createLenderKYC = async ({
   userId,
@@ -8,79 +31,60 @@ export const createLenderKYC = async ({
   pan_number,
   aadharPath,
   panPath,
-  available_funds
+  available_funds,
 }) => {
-  // Fetch any existing profile to possibly remove old files
-  const existing = await pool.query(
-    "SELECT aadhar_image_path, pan_image_path FROM lender_profiles WHERE user_id = $1",
-    [userId]
-  );
+  const existing = await prisma.lenderProfile.findUnique({
+    where: { userId },
+    select: { aadhar_image_path: true, pan_image_path: true },
+  });
 
-  if (existing.rows.length) {
-    const prev = existing.rows[0];
-
-    if (
-      aadharPath &&
-      prev.aadhar_image_path &&
-      prev.aadhar_image_path !== aadharPath
-    ) {
-      await safeDelete(prev.aadhar_image_path);
+  if (existing) {
+    if (aadharPath && existing.aadhar_image_path && existing.aadhar_image_path !== aadharPath) {
+      await safeDelete(existing.aadhar_image_path);
     }
-
-    if (panPath && prev.pan_image_path && prev.pan_image_path !== panPath) {
-      await safeDelete(prev.pan_image_path);
+    if (panPath && existing.pan_image_path && existing.pan_image_path !== panPath) {
+      await safeDelete(existing.pan_image_path);
     }
   }
 
-  const query = `
-    INSERT INTO lender_profiles 
-      (user_id, aadhar_number, pan_number, aadhar_image_path, pan_image_path, available_funds, kyc_status) 
-    VALUES ($1, $2, $3, $4, $5, $6, 'pending')
-    ON CONFLICT (user_id)
-    DO UPDATE SET
-      aadhar_number      = COALESCE(EXCLUDED.aadhar_number, lender_profiles.aadhar_number),
-      pan_number         = COALESCE(EXCLUDED.pan_number, lender_profiles.pan_number),
-      aadhar_image_path  = COALESCE(EXCLUDED.aadhar_image_path, lender_profiles.aadhar_image_path),
-      pan_image_path     = COALESCE(EXCLUDED.pan_image_path, lender_profiles.pan_image_path),
-      available_funds    = EXCLUDED.available_funds,
-      kyc_status         = 'pending',
-      updated_at         = CURRENT_TIMESTAMP
-    RETURNING *;
-  `;
-
-  const { rows } = await pool.query(query, [
+  const data = {
     userId,
-    aadhar_number,
-    pan_number,
-    aadharPath,
-    panPath,
-    available_funds || null
-  ]);
+    aadhar_number: aadhar_number ?? null,
+    pan_number: pan_number ?? null,
+    aadhar_image_path: aadharPath ?? null,
+    pan_image_path: panPath ?? null,
+    available_funds: toNumber(available_funds),
+    kyc_status: "pending",
+  };
 
+  const record = await prisma.lenderProfile.upsert({
+    where: { userId },
+    create: data,
+    update: {
+      aadhar_number: data.aadhar_number ?? undefined,
+      pan_number: data.pan_number ?? undefined,
+      aadhar_image_path: data.aadhar_image_path ?? undefined,
+      pan_image_path: data.pan_image_path ?? undefined,
+      available_funds: data.available_funds,
+      kyc_status: "pending",
+      updated_at: new Date(),
+    },
+  });
+
+  return [record];
+};
+
+export const getAllPendingLenderKYC = async () => {
+  const rows = await prisma.lenderProfile.findMany({
+    where: { kyc_status: "pending" },
+  });
   return rows;
 };
 
-async function safeDelete(filePath) {
-  try {
-    const absolute = path.resolve(filePath);
-    await fs.unlink(absolute);
-  } catch (e) {
-    // Ignore if file doesn’t exist or cannot be deleted
-    console.warn(`Could not delete file ${filePath}:`, e.message);
-  }
-}
-
-export const getAllPendingLenderKYC = async() =>{
-  const {rows} = await pool.query("SELECT * FROM lender_profiles WHERE kyc_status = $1",['pending']);
-
-  return rows;
-}
-
-export const updateLenderKYC = async(id,status) =>{
-  const update_time = new Date(Date.now());
-  console.log(id,update_time,status)
-  const {rows} = await pool.query("UPDATE lender_profiles SET kyc_status = $1,updated_at = $2 WHERE id = $3 RETURNING *",
-    [status,update_time,id]
-  );
-  return rows;
-}
+export const updateLenderKYC = async (id, status) => {
+  const record = await prisma.lenderProfile.update({
+    where: { id: Number(id) },
+    data: { kyc_status: status, updated_at: new Date() },
+  });
+  return [record];
+};
