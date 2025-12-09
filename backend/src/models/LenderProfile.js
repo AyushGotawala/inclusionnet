@@ -1,14 +1,6 @@
-import pkg from "@prisma/client";
-const { PrismaClient } = pkg;
-import { PrismaPg } from '@prisma/adapter-pg';
-import pg from 'pg';
+import prisma from '../lib/prisma.js';
 import path from "path";
 import fs from "fs/promises";
-
-const { Pool } = pg;
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
 
 async function safeDelete(filePath) {
   try {
@@ -77,13 +69,48 @@ export const createLenderKYC = async ({
 export const getAllPendingLenderKYC = async () => {
   const rows = await prisma.lenderProfile.findMany({
     where: { kyc_status: "pending" },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          role: true,
+        }
+      }
+    },
+    orderBy: { created_at: 'desc' }
   });
-  return rows;
+  
+  // Flatten the response to include user fields directly
+  // Note: LenderProfile doesn't have full_name, so we use user.name
+  return rows.map(row => ({
+    ...row,
+    userId: row.userId,
+    full_name: row.user?.name || '',
+    email: row.user?.email || '',
+    contact_number: row.user?.phone || '',
+    aadhaar_number: row.aadhar_number || '', // Map aadhar_number to aadhaar_number for consistency
+    pan_number: row.pan_number || '',
+    aadhaar_image: row.aadhar_image_path || '', // Map for consistency
+    pan_image: row.pan_image_path || '', // Map for consistency
+  }));
 };
 
 export const updateLenderKYC = async (id, status) => {
+  // This function accepts profile id (not userId)
   const record = await prisma.lenderProfile.update({
     where: { id: Number(id) },
+    data: { kyc_status: status, updated_at: new Date() },
+  });
+  return [record];
+};
+
+// Alternative function that accepts userId
+export const updateLenderKYCByUserId = async (userId, status) => {
+  const record = await prisma.lenderProfile.update({
+    where: { userId: Number(userId) },
     data: { kyc_status: status, updated_at: new Date() },
   });
   return [record];

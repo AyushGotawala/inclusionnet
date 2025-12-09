@@ -66,12 +66,31 @@ const LenderKYC = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     
+    // Only send fields that exist in LenderProfile schema
+    // Map aadhaar_number to aadhar_number for backend compatibility
     const submitData = {
-      ...formData,
+      aadhar_number: formData.aadhaar_number, // Map to backend field name
+      pan_number: formData.pan_number,
+      // Use investment_amount or annual_income as available_funds, convert to number
+      available_funds: formData.investment_amount 
+        ? Number(formData.investment_amount) 
+        : (formData.annual_income ? Number(formData.annual_income) : ''),
       aadhar: files.aadhar,
       pan: files.pan,
     };
+    
+    // Validate required fields
+    if (!submitData.aadhar_number || !submitData.pan_number) {
+      alert('Please fill in Aadhaar number and PAN number');
+      return;
+    }
+    
+    if (!files.aadhar || !files.pan) {
+      alert('Please upload both Aadhaar and PAN documents');
+      return;
+    }
 
+    console.log('📤 Submitting Lender KYC:', submitData);
     dispatch(uploadLenderKYC(submitData));
   };
 

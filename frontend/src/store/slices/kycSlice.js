@@ -39,13 +39,18 @@ export const uploadBorrowerKYC = createAsyncThunk(
         formData.append('pan', kycData.pan);
       }
 
-      const response = await api.post('/kyc/borrowers/kyc', formData, {
+      const response = await api.post('/api/kyc/borrowers/kyc', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
       return response.data;
     } catch (error) {
+      // Handle validation errors
+      if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+        const errorMessages = error.response.data.errors.map(err => err.message || err.msg).join(', ');
+        return rejectWithValue(errorMessages || 'Validation failed');
+      }
       return rejectWithValue(error.response?.data?.message || 'KYC upload failed');
     }
   }
@@ -72,7 +77,7 @@ export const uploadLenderKYC = createAsyncThunk(
         formData.append('pan', kycData.pan);
       }
 
-      const response = await api.post('/kyc/lenders/kyc', formData, {
+      const response = await api.post('/api/kyc/lenders/kyc', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -84,15 +89,55 @@ export const uploadLenderKYC = createAsyncThunk(
   }
 );
 
+// Get individual KYC status for users
+export const getBorrowerKYCStatus = createAsyncThunk(
+  'kyc/getBorrowerKYCStatus',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get('/api/kyc/borrowers/status');
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch KYC status');
+    }
+  }
+);
+
+export const getLenderKYCStatus = createAsyncThunk(
+  'kyc/getLenderKYCStatus',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get('/api/kyc/lenders/status');
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch KYC status');
+    }
+  }
+);
+
 // Get pending KYC lists (for admin)
 export const getBorrowerKYCList = createAsyncThunk(
   'kyc/getBorrowerKYCList',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get('/kyc/borrowers/pendingKYC');
-      return response.data;
+      const response = await api.get('/api/kyc/admin/borrowers/all');
+      console.log('Borrower KYC Response:', response.data);
+      
+      // Handle different response formats
+      if (response.data.success && response.data.data) {
+        return response.data.data;
+      } else if (Array.isArray(response.data)) {
+        return response.data;
+      } else if (response.data.data) {
+        return response.data.data;
+      }
+      return [];
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch KYC list');
+      console.error('Get Borrower KYC List Error:', error);
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.error || 
+                          error.message || 
+                          'Failed to fetch KYC list';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -101,10 +146,25 @@ export const getLenderKYCList = createAsyncThunk(
   'kyc/getLenderKYCList',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get('/kyc/lenders/pendingKYC');
-      return response.data;
+      const response = await api.get('/api/kyc/admin/lenders/all');
+      console.log('Lender KYC Response:', response.data);
+      
+      // Handle different response formats
+      if (response.data.success && response.data.data) {
+        return response.data.data;
+      } else if (Array.isArray(response.data)) {
+        return response.data;
+      } else if (response.data.data) {
+        return response.data.data;
+      }
+      return [];
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch KYC list');
+      console.error('Get Lender KYC List Error:', error);
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.error || 
+                          error.message || 
+                          'Failed to fetch KYC list';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -114,8 +174,7 @@ export const verifyBorrowerKYC = createAsyncThunk(
   'kyc/verifyBorrowerKYC',
   async ({ userId, status }, { rejectWithValue }) => {
     try {
-      const response = await api.post('/kyc/borrowers/verifyKYC', {
-        userId,
+      const response = await api.put(`/api/kyc/admin/borrowers/${userId}/status`, {
         status,
       });
       return response.data;
@@ -129,8 +188,7 @@ export const verifyLenderKYC = createAsyncThunk(
   'kyc/verifyLenderKYC',
   async ({ userId, status }, { rejectWithValue }) => {
     try {
-      const response = await api.post('/kyc/lenders/verifyKYC', {
-        userId,
+      const response = await api.put(`/api/kyc/admin/lenders/${userId}/status`, {
         status,
       });
       return response.data;
@@ -144,6 +202,9 @@ const initialState = {
   borrowerKycList: [],
   lenderKycList: [],
   currentKyc: null,
+  userKycStatus: null, // Individual user's KYC status
+  borrowerKycStatus: null,
+  lenderKycStatus: null,
   isLoading: false,
   error: null,
   uploadSuccess: false,
@@ -218,6 +279,32 @@ const kycSlice = createSlice({
         state.lenderKycList = action.payload;
       })
       .addCase(getLenderKYCList.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      // Get Borrower KYC Status
+      .addCase(getBorrowerKYCStatus.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(getBorrowerKYCStatus.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.borrowerKycStatus = action.payload;
+      })
+      .addCase(getBorrowerKYCStatus.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      // Get Lender KYC Status
+      .addCase(getLenderKYCStatus.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(getLenderKYCStatus.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.lenderKycStatus = action.payload;
+      })
+      .addCase(getLenderKYCStatus.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       })

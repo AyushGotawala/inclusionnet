@@ -64,19 +64,22 @@ const Signup = () => {
 
   if (signupSuccess) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 text-center">
-            <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Account Created!</h2>
-            <p className="text-gray-600 mb-4">
+          <div className="card py-10 px-6 sm:px-10 text-center">
+            <div className="h-20 w-20 bg-gradient-to-br from-success-500 to-success-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
+              <CheckCircle className="h-12 w-12 text-white" />
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-3">Account Created!</h2>
+            <p className="text-gray-600 mb-6 text-lg">
               Your account has been successfully created. You will be redirected to login shortly.
             </p>
             <Link
               to="/login"
-              className="text-blue-600 hover:text-blue-500"
+              className="btn btn-primary inline-flex items-center"
             >
-              Go to Login →
+              Go to Login
+              <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
           </div>
         </div>
@@ -85,27 +88,29 @@ const Signup = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center">
-          <TrendingUp className="h-12 w-12 text-blue-600" />
-        </div>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        <Link to="/" className="flex justify-center group">
+          <div className="h-16 w-16 bg-gradient-to-br from-primary-600 to-accent-600 rounded-2xl flex items-center justify-center shadow-xl group-hover:shadow-2xl group-hover:scale-110 transition-all duration-300">
+            <TrendingUp className="h-8 w-8 text-white" />
+          </div>
+        </Link>
+        <h2 className="mt-6 text-center text-4xl font-extrabold text-gray-900">
           Create your account
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
+        <p className="mt-2 text-center text-lg text-gray-600">
           Join our peer-to-peer lending platform
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        <div className="card py-10 px-6 sm:px-10">
           {error && (
-            <div className="mb-4 bg-red-50 border border-red-200 rounded-md p-4">
+            <div className="mb-6 alert alert-danger">
               <div className="flex">
-                <AlertCircle className="h-5 w-5 text-red-400" />
+                <AlertCircle className="h-5 w-5 text-danger-500 flex-shrink-0" />
                 <div className="ml-3">
-                  <p className="text-sm text-red-800">{error}</p>
+                  <p className="text-sm font-medium">{error}</p>
                 </div>
               </div>
             </div>
@@ -114,11 +119,11 @@ const Signup = () => {
           <form className="space-y-6" onSubmit={handleSubmit}>
             {/* Role Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <label className="block text-sm font-semibold text-gray-700 mb-4">
                 I want to
               </label>
-              <div className="grid grid-cols-2 gap-3">
-                <label className="relative">
+              <div className="grid grid-cols-2 gap-4">
+                <label className="relative group cursor-pointer">
                   <input
                     type="radio"
                     name="role"
@@ -127,15 +132,20 @@ const Signup = () => {
                     onChange={handleChange}
                     className="sr-only"
                   />
-                  <div className={`p-3 border-2 rounded-lg cursor-pointer text-center transition-colors ${
+                  <div className={`p-4 border-2 rounded-xl text-center transition-all duration-200 hover:shadow-lg ${
                     formData.role === 'BORROWER'
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
-                      : 'border-gray-200 hover:border-gray-300'
+                      ? 'border-primary-500 bg-gradient-to-br from-primary-50 to-primary-100 text-primary-700 shadow-md'
+                      : 'border-gray-200 hover:border-primary-300 bg-white'
                   }`}>
-                    <span className="font-medium">Borrow Money</span>
+                    <div className={`h-8 w-8 rounded-full mx-auto mb-2 flex items-center justify-center ${
+                      formData.role === 'BORROWER' ? 'bg-primary-600' : 'bg-gray-200'
+                    }`}>
+                      {formData.role === 'BORROWER' && <CheckCircle className="h-5 w-5 text-white" />}
+                    </div>
+                    <span className="font-semibold block">Borrow Money</span>
                   </div>
                 </label>
-                <label className="relative">
+                <label className="relative group cursor-pointer">
                   <input
                     type="radio"
                     name="role"
@@ -144,12 +154,17 @@ const Signup = () => {
                     onChange={handleChange}
                     className="sr-only"
                   />
-                  <div className={`p-3 border-2 rounded-lg cursor-pointer text-center transition-colors ${
+                  <div className={`p-4 border-2 rounded-xl text-center transition-all duration-200 hover:shadow-lg ${
                     formData.role === 'LENDER'
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
-                      : 'border-gray-200 hover:border-gray-300'
+                      ? 'border-primary-500 bg-gradient-to-br from-primary-50 to-primary-100 text-primary-700 shadow-md'
+                      : 'border-gray-200 hover:border-primary-300 bg-white'
                   }`}>
-                    <span className="font-medium">Lend Money</span>
+                    <div className={`h-8 w-8 rounded-full mx-auto mb-2 flex items-center justify-center ${
+                      formData.role === 'LENDER' ? 'bg-primary-600' : 'bg-gray-200'
+                    }`}>
+                      {formData.role === 'LENDER' && <CheckCircle className="h-5 w-5 text-white" />}
+                    </div>
+                    <span className="font-semibold block">Lend Money</span>
                   </div>
                 </label>
               </div>
@@ -157,11 +172,11 @@ const Signup = () => {
 
             {/* Name */}
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
                 Full Name
               </label>
-              <div className="mt-1 relative">
-                <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+              <div className="relative">
+                <User className="input-icon" />
                 <input
                   id="name"
                   name="name"
@@ -169,7 +184,7 @@ const Signup = () => {
                   required
                   value={formData.name}
                   onChange={handleChange}
-                  className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="input pl-10"
                   placeholder="Enter your full name"
                 />
               </div>
@@ -177,11 +192,11 @@ const Signup = () => {
 
             {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
                 Email Address
               </label>
-              <div className="mt-1 relative">
-                <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+              <div className="relative">
+                <Mail className="input-icon" />
                 <input
                   id="email"
                   name="email"
@@ -190,7 +205,7 @@ const Signup = () => {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="input pl-10"
                   placeholder="Enter your email"
                 />
               </div>
@@ -198,18 +213,18 @@ const Signup = () => {
 
             {/* Phone */}
             <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">
                 Phone Number
               </label>
-              <div className="mt-1 relative">
-                <Phone className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+              <div className="relative">
+                <Phone className="input-icon" />
                 <input
                   id="phone"
                   name="phone"
                   type="tel"
                   value={formData.phone}
                   onChange={handleChange}
-                  className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="input pl-10"
                   placeholder="Enter your phone number"
                 />
               </div>
@@ -217,11 +232,11 @@ const Signup = () => {
 
             {/* Password */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
                 Password
               </label>
-              <div className="mt-1 relative">
-                <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+              <div className="relative">
+                <Lock className="input-icon" />
                 <input
                   id="password"
                   name="password"
@@ -229,18 +244,18 @@ const Signup = () => {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="appearance-none block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="input pl-10 pr-10"
                   placeholder="Create a password"
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-3"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400" />
+                    <EyeOff className="h-5 w-5" />
                   ) : (
-                    <Eye className="h-5 w-5 text-gray-400" />
+                    <Eye className="h-5 w-5" />
                   )}
                 </button>
               </div>
@@ -248,11 +263,11 @@ const Signup = () => {
 
             {/* Confirm Password */}
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700 mb-2">
                 Confirm Password
               </label>
-              <div className="mt-1 relative">
-                <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+              <div className="relative">
+                <Lock className="input-icon" />
                 <input
                   id="confirmPassword"
                   name="confirmPassword"
@@ -260,27 +275,27 @@ const Signup = () => {
                   required
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className={`appearance-none block w-full pl-10 pr-10 py-2 border rounded-md placeholder-gray-400 focus:outline-none sm:text-sm ${
+                  className={`input pl-10 pr-10 ${
                     !passwordMatch && formData.confirmPassword
-                      ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                      : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                      ? 'border-danger-300 focus:ring-danger-500 focus:border-danger-500'
+                      : ''
                   }`}
                   placeholder="Confirm your password"
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-3"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 >
                   {showConfirmPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400" />
+                    <EyeOff className="h-5 w-5" />
                   ) : (
-                    <Eye className="h-5 w-5 text-gray-400" />
+                    <Eye className="h-5 w-5" />
                   )}
                 </button>
               </div>
               {!passwordMatch && formData.confirmPassword && (
-                <p className="mt-1 text-sm text-red-600">Passwords do not match</p>
+                <p className="mt-2 text-sm text-danger-600 font-medium">Passwords do not match</p>
               )}
             </div>
 
@@ -288,11 +303,11 @@ const Signup = () => {
               <button
                 type="submit"
                 disabled={isLoading || !passwordMatch}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
+                className="btn btn-primary w-full py-3 text-base"
               >
                 {isLoading ? (
                   <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
                     Creating account...
                   </div>
                 ) : (
@@ -302,20 +317,20 @@ const Signup = () => {
             </div>
           </form>
 
-          <div className="mt-6">
+          <div className="mt-8">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
+                <div className="w-full border-t border-gray-200" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Already have an account?</span>
+                <span className="px-4 bg-white text-gray-500 font-medium">Already have an account?</span>
               </div>
             </div>
 
             <div className="mt-6">
               <Link
                 to="/login"
-                className="w-full flex justify-center py-2 px-4 border border-blue-600 rounded-md shadow-sm bg-white text-sm font-medium text-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200"
+                className="btn btn-secondary w-full py-3 text-base"
               >
                 Sign in to existing account
               </Link>
@@ -325,7 +340,7 @@ const Signup = () => {
           <div className="mt-6 text-center">
             <Link
               to="/"
-              className="text-sm text-blue-600 hover:text-blue-500"
+              className="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
             >
               ← Back to home
             </Link>

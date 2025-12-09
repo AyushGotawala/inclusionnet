@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 enum Role {
@@ -18,6 +19,29 @@ enum KycStatus {
   rejected
 }
 
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+  USER_REPLIED
+  ADMIN_REPLIED
+}
+
+enum TicketPriority {
+  low
+  medium
+  high
+  critical
+}
+
+enum TicketCategory {
+  technical
+  account
+  payment
+  general
+}
+
 model User {
   id        Int              @id @default(autoincrement())
   name      String
@@ -25,11 +49,18 @@ model User {
   phone     String?
   password  String
   role      Role
+  profilePicture String?
+  isEmailVerified Boolean @default(false)
+  isKYCVerified Boolean @default(false)
+  passwordResetToken String?
+  passwordResetExpires DateTime?
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
 
   borrowerProfile BorrowerProfile?
   lenderProfile   LenderProfile?
+  supportTickets  SupportTicket[]
+  ticketReplies   SupportTicketReply[]
 }
 
 model BorrowerProfile {
@@ -81,4 +112,46 @@ model LenderProfile {
   updated_at           DateTime  @default(now()) @updatedAt
 
   user User @relation(fields: [userId], references: [id])
+}
+
+model SupportTicket {
+  id               Int       @id @default(autoincrement())
+  ticketId         String    @unique
+  userId           Int
+  category         TicketCategory
+  priority         TicketPriority @default(medium)
+  subject          String
+  description      String    @db.Text
+  steps            String?   @db.Text
+  expectedBehavior String?   @db.Text
+  actualBehavior   String?   @db.Text
+  status           TicketStatus @default(OPEN)
+  adminNote        String?   @db.Text
+  resolvedAt       DateTime?
+  resolvedBy       Int?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  user    User                 @relation(fields: [userId], references: [id])
+  replies SupportTicketReply[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([category])
+  @@index([priority])
+}
+
+model SupportTicketReply {
+  id         Int      @id @default(autoincrement())
+  ticketId   Int
+  userId     Int
+  message    String   @db.Text
+  isFromUser Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  ticket SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user   User          @relation(fields: [userId], references: [id])
+
+  @@index([ticketId])
 }
