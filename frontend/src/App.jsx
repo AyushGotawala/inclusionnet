@@ -13,6 +13,10 @@ import LenderDashboard from './components/dashboards/LenderDashboard';
 import AdminDashboard from './components/dashboards/AdminDashboard';
 import BorrowerKYC from './components/kyc/BorrowerKYC';
 import LenderKYC from './components/kyc/LenderKYC';
+import BorrowerProfile from './components/profile/BorrowerProfile';
+import LenderProfile from './components/profile/LenderProfile';
+import ResetPassword from './components/profile/ResetPassword';
+import ReportIssue from './components/profile/ReportIssue';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
@@ -100,6 +104,38 @@ function AppContent() {
             element={
               <ProtectedRoute allowedRoles={['LENDER']}>
                 <LenderKYC />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/borrower-profile" 
+            element={
+              <ProtectedRoute allowedRoles={['BORROWER']}>
+                <BorrowerProfile />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/lender-profile" 
+            element={
+              <ProtectedRoute allowedRoles={['LENDER']}>
+                <LenderProfile />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/reset-password" 
+            element={
+              <ProtectedRoute allowedRoles={['BORROWER', 'LENDER', 'ADMIN']}>
+                <ResetPassword />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/report-issue" 
+            element={
+              <ProtectedRoute allowedRoles={['BORROWER', 'LENDER', 'ADMIN']}>
+                <ReportIssue />
               </ProtectedRoute>
             } 
           />

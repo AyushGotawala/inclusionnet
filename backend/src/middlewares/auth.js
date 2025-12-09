@@ -4,7 +4,10 @@ export function authMiddleware(req, res, next) {
   // 1️⃣ Get Authorization header
   const authHeader = req.headers['authorization'];
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Authorization header missing or malformed' });
+    return res.status(401).json({ 
+      success: false,
+      message: 'Authorization header missing or malformed' 
+    });
   }
 
   // 2️⃣ Extract token
@@ -15,7 +18,10 @@ export function authMiddleware(req, res, next) {
     const secret = process.env.JWT_SECRET;
     if (!secret) {
       console.error('JWT_SECRET not set in environment');
-      return res.status(500).json({ error: 'Server misconfiguration' });
+      return res.status(500).json({ 
+        success: false,
+        message: 'Server misconfiguration' 
+      });
     }
 
     const decoded = jwt.verify(token, secret);
@@ -23,7 +29,9 @@ export function authMiddleware(req, res, next) {
     // 4️⃣ Attach user info
     req.user = {
       id: decoded.id,
+      name: decoded.name,
       email: decoded.email,
+      phone: decoded.phone,
       role: decoded.role || 'user',
     };
 
@@ -31,6 +39,9 @@ export function authMiddleware(req, res, next) {
     next();
   } catch (err) {
     console.error('JWT verification failed:', err.message);
-    return res.status(401).json({ error: 'Invalid or expired token' });
+    return res.status(401).json({ 
+      success: false,
+      message: 'Invalid or expired token' 
+    });
   }
 }

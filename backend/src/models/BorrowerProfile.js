@@ -1,14 +1,6 @@
-import pkg from "@prisma/client";
-const { PrismaClient } = pkg;
-import { PrismaPg } from '@prisma/adapter-pg';
-import pg from 'pg';
+import prisma from '../lib/prisma.js';
 import path from "path";
 import fs from "fs/promises";
-
-const { Pool } = pg;
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
 
 function toNumber(val) {
   if (val === undefined || val === null || val === "") return null;
@@ -134,14 +126,37 @@ export const createBorrowerKYC = async ({
 export const getAllPendingBorrowerKYC = async () => {
   const rows = await prisma.borrowerProfile.findMany({
     where: { kyc_status: "pending" },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          role: true,
+        }
+      }
+    },
+    orderBy: { created_at: 'desc' }
   });
-  return rows;
+  
+  // Flatten the response to include user fields directly
+  return rows.map(row => ({
+    ...row,
+    userId: row.userId,
+    email: row.email || row.user?.email || '',
+    contact_number: row.contact_number || row.user?.phone || '',
+    full_name: row.full_name || row.user?.name || '',
+    // Ensure document paths are included
+    aadhaar_image: row.aadhaar_image || '',
+    pan_image: row.pan_image || '',
+  }));
 };
 
-export const updateBorrowerKYC = async (id, status) => {
+export const updateBorrowerKYC = async ({ userId, kyc_status }) => {
   const record = await prisma.borrowerProfile.update({
-    where: { id: Number(id) },
-    data: { kyc_status: status, updated_at: new Date() },
+    where: { userId: Number(userId) },
+    data: { kyc_status, updated_at: new Date() },
   });
   return [record];
 };

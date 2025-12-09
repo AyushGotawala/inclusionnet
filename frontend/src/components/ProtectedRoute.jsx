@@ -9,7 +9,21 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     return <Navigate to="/login" replace />;
   }
 
+  // Debug logging (remove in production)
+  if (allowedRoles.length > 0) {
+    console.log('ProtectedRoute check:', {
+      userRole: user?.role,
+      allowedRoles,
+      isAllowed: allowedRoles.includes(user?.role)
+    });
+  }
+
   if (allowedRoles.length > 0 && !allowedRoles.includes(user?.role)) {
+    console.warn('Access denied:', {
+      userRole: user?.role,
+      allowedRoles,
+      user: user
+    });
     return <Navigate to="/login" replace />;
   }
 
