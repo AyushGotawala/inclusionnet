@@ -132,7 +132,7 @@ export const uploadLenderKYC = async (req, res, next) => {
 
     // Accept both spellings: aadhar_number and aadhaar_number
     const aadhar_number = req.body.aadhar_number || req.body.aadhaar_number;
-    const { pan_number, available_funds } = req.body;
+    const { pan_number, available_funds, interest_rate } = req.body;
     
     // Use filename instead of path for consistency with borrower KYC
     const aadharPath = req.files?.["aadhar"]?.[0]?.filename || null;
@@ -154,6 +154,7 @@ export const uploadLenderKYC = async (req, res, next) => {
       aadharPath,
       panPath,
       available_funds,
+      interest_rate,
     });
 
     return res.status(201).json({

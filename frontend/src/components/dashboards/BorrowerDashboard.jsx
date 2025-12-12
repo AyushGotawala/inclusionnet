@@ -1,20 +1,27 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import Layout from '../Layout';
-import { CreditCard, Upload, FileText, AlertCircle, CheckCircle, Clock, User } from 'lucide-react';
+import { CreditCard, Upload, FileText, AlertCircle, CheckCircle, Clock, User, X, MessageSquare } from 'lucide-react';
 import { getBorrowerKYCStatus } from '../../store/slices/kycSlice';
+import { getUnreadCount, getActiveChats, removeNotification } from '../../store/slices/chatSlice';
 
 const BorrowerDashboard = () => {
   const dispatch = useDispatch();
   const { borrowerKycStatus, isLoading } = useSelector((state) => state.kyc);
+  const { notifications = [] } = useSelector((state) => state.chat || {});
+  const [showNotifications, setShowNotifications] = useState(true);
   
   // Get KYC status from Redux store or default to not_submitted
   const kycStatus = borrowerKycStatus?.kyc_status || 'not_submitted';
 
   useEffect(() => {
     dispatch(getBorrowerKYCStatus());
+    dispatch(getUnreadCount());
+    dispatch(getActiveChats());
   }, [dispatch]);
+
+  // Note: Message notifications are handled in Layout.jsx to avoid duplicates
   
   const getKycStatusDisplay = () => {
     switch (kycStatus) {
@@ -51,16 +58,67 @@ const BorrowerDashboard = () => {
 
   const kycDisplay = getKycStatusDisplay();
 
+  // Filter recent notifications (last 5)
+  const recentNotifications = (notifications || []).slice(0, 5);
+
   return (
     <Layout title="Borrower Dashboard">
+      {/* Message Notifications */}
+      {showNotifications && Array.isArray(recentNotifications) && recentNotifications.length > 0 && (
+        <div className="fixed top-20 right-4 z-50 space-y-2 max-w-sm">
+          {recentNotifications.map((notification) => {
+            if (!notification || !notification.id) return null;
+            return (
+            <div
+              key={notification.id}
+              className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 animate-slideInRight"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex items-start space-x-3 flex-1">
+                  <div className="flex-shrink-0">
+                    <MessageSquare className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-900">{notification.title}</p>
+                    <p className="text-xs text-gray-600 mt-1 line-clamp-2">{notification.message}</p>
+                    <Link
+                      to={`/messages/${notification.loanRequestId}`}
+                      className="text-xs text-blue-600 hover:text-blue-800 mt-2 inline-block"
+                    >
+                      View message →
+                    </Link>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    dispatch(removeNotification(notification.id));
+                  }}
+                  className="flex-shrink-0 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+            );
+          })}
+          {Array.isArray(notifications) && notifications.length > 5 && (
+            <button
+              onClick={() => setShowNotifications(false)}
+              className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm py-2 rounded-lg transition-colors"
+            >
+              Dismiss all
+            </button>
+          )}
+        </div>
+      )}
       <div className="space-y-6">
         {/* Welcome Section */}
         <div className="card bg-gradient-to-r from-primary-600 via-primary-700 to-accent-600 text-white border-0 shadow-xl">
           <div className="card-body">
             <h2 className="text-3xl font-bold mb-2">Welcome back!</h2>
             <p className="text-primary-100 text-lg">
-              Ready to find the perfect loan for your needs? Start by completing your verification process.
-            </p>
+            Ready to find the perfect loan for your needs? Start by completing your verification process.
+          </p>
           </div>
         </div>
 
@@ -72,11 +130,11 @@ const BorrowerDashboard = () => {
                 <div className="h-10 w-10 rounded-xl bg-primary-100 flex items-center justify-center">
                   <FileText className="h-5 w-5 text-primary-600" />
                 </div>
-                KYC Verification Status
-              </h3>
+              KYC Verification Status
+            </h3>
               <div className={`badge ${kycDisplay.color.replace('bg-', 'badge-').replace('text-', '').split(' ')[0]}`}>
-                {kycDisplay.icon}
-                <span className="ml-2">{kycDisplay.text}</span>
+              {kycDisplay.icon}
+              <span className="ml-2">{kycDisplay.text}</span>
               </div>
             </div>
           </div>
@@ -187,84 +245,102 @@ const BorrowerDashboard = () => {
           {/* Apply for Loan */}
           <div className="card hover-lift">
             <div className="card-body">
-              <div className="flex items-center space-x-3 mb-4">
+            <div className="flex items-center space-x-3 mb-4">
                 <div className="flex-shrink-0 h-12 w-12 rounded-xl bg-primary-100 flex items-center justify-center">
                   <CreditCard className="h-6 w-6 text-primary-600" />
-                </div>
-                <h3 className="text-lg font-bold text-gray-900">Apply for Loan</h3>
               </div>
-              <p className="text-gray-600 mb-4">
-                Get instant access to competitive loan offers from verified lenders.
-              </p>
-              <button
-                disabled={kycStatus !== 'approved'}
-                className={`btn w-full ${kycStatus === 'approved' ? 'btn-primary' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
+                <h3 className="text-lg font-bold text-gray-900">Apply for Loan</h3>
+            </div>
+            <p className="text-gray-600 mb-4">
+              Get instant access to competitive loan offers from verified lenders.
+            </p>
+            {kycStatus === 'approved' ? (
+              <Link
+                to="/apply-loan"
+                className="btn btn-primary w-full text-center"
               >
-                {kycStatus === 'approved' ? 'Apply Now' : 'Complete KYC First'}
+                Apply Now
+              </Link>
+            ) : (
+              <button
+                disabled
+                className="btn w-full bg-gray-100 text-gray-400 cursor-not-allowed"
+              >
+                Complete KYC First
               </button>
+            )}
             </div>
           </div>
 
           {/* My Loans */}
           <div className="card hover-lift">
             <div className="card-body">
-              <div className="flex items-center space-x-3 mb-4">
+            <div className="flex items-center space-x-3 mb-4">
                 <div className="flex-shrink-0 h-12 w-12 rounded-xl bg-success-100 flex items-center justify-center">
                   <FileText className="h-6 w-6 text-success-600" />
-                </div>
-                <h3 className="text-lg font-bold text-gray-900">My Loans</h3>
               </div>
-              <p className="text-gray-600 mb-4">
-                Track your active loans, payment schedules, and loan history.
-              </p>
-              <button
-                disabled={kycStatus !== 'approved'}
-                className={`btn w-full ${kycStatus === 'approved' ? 'btn-success' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
+                <h3 className="text-lg font-bold text-gray-900">My Loans</h3>
+            </div>
+            <p className="text-gray-600 mb-4">
+              Track your active loans, payment schedules, and loan history.
+            </p>
+            {kycStatus === 'approved' ? (
+              <Link
+                to="/my-loans"
+                className="btn btn-success w-full text-center"
               >
-                {kycStatus === 'approved' ? 'View Loans' : 'No Active Loans'}
+                View Loans
+              </Link>
+            ) : (
+              <button
+                disabled
+                className="btn w-full bg-gray-100 text-gray-400 cursor-not-allowed"
+              >
+                No Active Loans
               </button>
+            )}
             </div>
           </div>
 
           {/* Payment History */}
           <div className="card hover-lift">
             <div className="card-body">
-              <div className="flex items-center space-x-3 mb-4">
+            <div className="flex items-center space-x-3 mb-4">
                 <div className="flex-shrink-0 h-12 w-12 rounded-xl bg-accent-100 flex items-center justify-center">
                   <Clock className="h-6 w-6 text-accent-600" />
-                </div>
-                <h3 className="text-lg font-bold text-gray-900">Payment History</h3>
               </div>
-              <p className="text-gray-600 mb-4">
-                Review your payment history and build your credit profile.
-              </p>
-              <button
-                disabled={kycStatus !== 'approved'}
+                <h3 className="text-lg font-bold text-gray-900">Payment History</h3>
+            </div>
+            <p className="text-gray-600 mb-4">
+              Review your payment history and build your credit profile.
+            </p>
+            <button
+              disabled={kycStatus !== 'approved'}
                 className={`btn w-full ${kycStatus === 'approved' ? 'bg-gradient-to-r from-accent-600 to-accent-700 text-white hover:from-accent-700 hover:to-accent-800' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
-              >
-                {kycStatus === 'approved' ? 'View History' : 'No Payment History'}
-              </button>
+            >
+              {kycStatus === 'approved' ? 'View History' : 'No Payment History'}
+            </button>
             </div>
           </div>
 
           {/* Profile Management */}
           <div className="card hover-lift">
             <div className="card-body">
-              <div className="flex items-center space-x-3 mb-4">
+            <div className="flex items-center space-x-3 mb-4">
                 <div className="flex-shrink-0 h-12 w-12 rounded-xl bg-primary-100 flex items-center justify-center">
                   <User className="h-6 w-6 text-primary-600" />
-                </div>
-                <h3 className="text-lg font-bold text-gray-900">Manage Profile</h3>
               </div>
-              <p className="text-gray-600 mb-4">
-                Update your personal and financial information.
-              </p>
-              <Link
-                to="/borrower-profile"
+                <h3 className="text-lg font-bold text-gray-900">Manage Profile</h3>
+            </div>
+            <p className="text-gray-600 mb-4">
+              Update your personal and financial information.
+            </p>
+            <Link
+              to="/borrower-profile"
                 className="btn btn-primary w-full text-center"
-              >
-                Edit Profile
-              </Link>
+            >
+              Edit Profile
+            </Link>
             </div>
           </div>
         </div>
@@ -285,7 +361,7 @@ const BorrowerDashboard = () => {
                 <div key={idx} className="text-center p-4 rounded-xl bg-gradient-to-br from-gray-50 to-white hover:shadow-md transition-shadow">
                   <div className={`text-3xl font-bold text-${stat.color}-600 mb-2`}>{stat.value}</div>
                   <div className="text-sm font-medium text-gray-600">{stat.label}</div>
-                </div>
+              </div>
               ))}
             </div>
           </div>
@@ -310,13 +386,13 @@ const BorrowerDashboard = () => {
                       item.completed 
                         ? 'bg-gradient-to-br from-success-500 to-success-600 text-white shadow-lg' 
                         : 'bg-gray-100 text-gray-400'
-                    }`}>
+                  }`}>
                       {item.completed ? <CheckCircle className="h-6 w-6" /> : item.step}
-                    </div>
+                  </div>
                     <div className="flex-1">
                       <h4 className="font-semibold text-gray-900">{item.title}</h4>
                       <p className="text-sm text-gray-600 mt-1">{item.desc}</p>
-                    </div>
+                </div>
                   </div>
                 ))}
               </div>

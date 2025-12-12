@@ -93,7 +93,7 @@ export const Login = async(req,res,next) => {
                 message: 'Server configuration error: JWT_SECRET not set'
             });
         }
-
+        
         const token = jwt.sign(
             { id: user.id, name: user.name, phone: user.phone, email: user.email, role: user.role },
             JWT_SECRET,

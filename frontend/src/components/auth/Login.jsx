@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { login, clearError } from '@/store/slices/authSlice';
-import { TrendingUp, Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react';
+import Logo from '../Logo';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -54,22 +55,20 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <Link to="/" className="flex justify-center group">
-          <div className="h-16 w-16 bg-gradient-to-br from-primary-600 to-accent-600 rounded-2xl flex items-center justify-center shadow-xl group-hover:shadow-2xl group-hover:scale-110 transition-all duration-300">
-            <TrendingUp className="h-8 w-8 text-white" />
-          </div>
-        </Link>
-        <h2 className="mt-6 text-center text-4xl font-extrabold text-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 page-enter">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md animate-fadeInUp">
+        <div className="flex justify-center animate-zoomIn">
+          <Logo size="lg" showText={false} />
+        </div>
+        <h2 className="mt-6 text-center text-4xl font-extrabold text-gray-900 animate-slideInDown">
           Welcome back
         </h2>
-        <p className="mt-2 text-center text-lg text-gray-600">
+        <p className="mt-2 text-center text-lg text-gray-600 animate-fadeIn animate-delay-200">
           Sign in to your account to continue
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md animate-fadeInUp animate-delay-300">
         <div className="card py-10 px-6 sm:px-10">
           {error && (
             <div className="mb-6 alert alert-danger">
@@ -97,7 +96,7 @@ const Login = () => {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className="input pl-10"
+                  className="input pl-10 input-focus-animate"
                   placeholder="Enter your email"
                 />
               </div>
@@ -117,7 +116,7 @@ const Login = () => {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="input pl-10 pr-10"
+                  className="input pl-10 pr-10 input-focus-animate"
                   placeholder="Enter your password"
                 />
                 <button
@@ -138,7 +137,7 @@ const Login = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="btn btn-primary w-full py-3 text-base"
+                className="btn btn-primary w-full py-3 text-base btn-animate btn-ripple"
               >
                 {isLoading ? (
                   <div className="flex items-center">
@@ -165,7 +164,7 @@ const Login = () => {
             <div className="mt-6">
               <Link
                 to="/signup"
-                className="btn btn-secondary w-full py-3 text-base"
+                className="btn btn-secondary w-full py-3 text-base btn-animate hover-scale"
               >
                 Create new account
               </Link>

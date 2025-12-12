@@ -24,6 +24,7 @@ export const createLenderKYC = async ({
   aadharPath,
   panPath,
   available_funds,
+  interest_rate,
 }) => {
   const existing = await prisma.lenderProfile.findUnique({
     where: { userId },
@@ -46,6 +47,7 @@ export const createLenderKYC = async ({
     aadhar_image_path: aadharPath ?? null,
     pan_image_path: panPath ?? null,
     available_funds: toNumber(available_funds),
+    interest_rate: toNumber(interest_rate),
     kyc_status: "pending",
   };
 
@@ -58,6 +60,7 @@ export const createLenderKYC = async ({
       aadhar_image_path: data.aadhar_image_path ?? undefined,
       pan_image_path: data.pan_image_path ?? undefined,
       available_funds: data.available_funds,
+      interest_rate: data.interest_rate,
       kyc_status: "pending",
       updated_at: new Date(),
     },

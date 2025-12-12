@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { signup, clearError } from '@/store/slices/authSlice';
-import { TrendingUp, Eye, EyeOff, Mail, Lock, User, Phone, AlertCircle, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Phone, AlertCircle, CheckCircle, ArrowRight } from 'lucide-react';
+import Logo from '../Logo';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -90,11 +91,9 @@ const Signup = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <Link to="/" className="flex justify-center group">
-          <div className="h-16 w-16 bg-gradient-to-br from-primary-600 to-accent-600 rounded-2xl flex items-center justify-center shadow-xl group-hover:shadow-2xl group-hover:scale-110 transition-all duration-300">
-            <TrendingUp className="h-8 w-8 text-white" />
-          </div>
-        </Link>
+        <div className="flex justify-center">
+          <Logo size="lg" showText={false} />
+        </div>
         <h2 className="mt-6 text-center text-4xl font-extrabold text-gray-900">
           Create your account
         </h2>

@@ -25,6 +25,7 @@ const LenderKYC = () => {
     income_source: '',
     annual_income: '',
     investment_goals: '',
+    interest_rate: '',
   });
 
   const [files, setFiles] = useState({
@@ -75,10 +76,11 @@ const LenderKYC = () => {
       available_funds: formData.investment_amount 
         ? Number(formData.investment_amount) 
         : (formData.annual_income ? Number(formData.annual_income) : ''),
+      interest_rate: formData.interest_rate ? Number(formData.interest_rate) : '',
       aadhar: files.aadhar,
       pan: files.pan,
     };
-    
+
     // Validate required fields
     if (!submitData.aadhar_number || !submitData.pan_number) {
       alert('Please fill in Aadhaar number and PAN number');
@@ -87,6 +89,18 @@ const LenderKYC = () => {
     
     if (!files.aadhar || !files.pan) {
       alert('Please upload both Aadhaar and PAN documents');
+      return;
+    }
+
+    // Validate interest rate
+    if (!formData.interest_rate || formData.interest_rate === '') {
+      alert('Please enter an interest rate');
+      return;
+    }
+
+    const interestRate = Number(formData.interest_rate);
+    if (isNaN(interestRate) || interestRate < 5 || interestRate > 12) {
+      alert('Interest rate must be between 5% and 12%');
       return;
     }
 
@@ -334,6 +348,22 @@ const LenderKYC = () => {
                     onChange={handleInputChange}
                     className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Interest Rate (%)</label>
+                  <input
+                    type="number"
+                    name="interest_rate"
+                    step="0.1"
+                    min="5"
+                    max="12"
+                    required
+                    value={formData.interest_rate}
+                    onChange={handleInputChange}
+                    placeholder="e.g., 8.5"
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">Enter your preferred interest rate as a percentage (must be between 5% and 12%)</p>
                 </div>
               </div>
             </div>

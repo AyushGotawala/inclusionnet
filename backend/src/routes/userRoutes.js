@@ -1,8 +1,10 @@
 import express from 'express';
 import { authMiddleware } from '../middlewares/auth.js';
+import { uploadProfilePicture as uploadMiddleware } from '../middlewares/profilePictureUpload.js';
 import { 
   getUserProfile, 
-  updateUserProfile, 
+  updateUserProfile,
+  uploadProfilePicture,
   changePassword, 
   resetPasswordRequest, 
   resetPasswordConfirm,
@@ -13,6 +15,9 @@ const userRouter = express.Router();
 
 // Get current user profile
 userRouter.get('/profile', authMiddleware, getUserProfile);
+
+// Upload profile picture
+userRouter.post('/profile/picture', authMiddleware, uploadMiddleware.single('profilePicture'), uploadProfilePicture);
 
 // Update user profile
 userRouter.put('/profile', authMiddleware, updateUserProfile);
