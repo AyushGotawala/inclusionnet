@@ -6,6 +6,9 @@ import authRouter from './routes/authRoute.js';
 import kycRouter from './routes/kycRoutes.js';
 import userRouter from './routes/userRoutes.js';
 import supportRouter from './routes/supportRoutes.js';
+import loanRouter from './routes/loanRoutes.js';
+import loanRequestRouter from './routes/loanRequestRoutes.js';
+import chatRouter from './routes/chatRoutes.js';
 import path from 'path';
 import fs from 'fs';
 import { handleInvalidRoute } from './middlewares/invalidRoute.js';
@@ -100,6 +103,57 @@ app.get('/api/documents/kyc/:filename', (req, res) => {
   });
 });
 
+// Dedicated endpoint to serve profile pictures with proper headers
+app.get('/api/profile-pictures/:filename', (req, res) => {
+  const filename = req.params.filename;
+  // Use absolute path for sendFile
+  const filePath = path.resolve(uploadsPath, 'profile-pictures', filename);
+  
+  if (!fs.existsSync(filePath)) {
+    console.error('❌ Profile picture not found:', filePath);
+    return res.status(404).json({ 
+      success: false,
+      error: 'Profile picture not found', 
+      path: filePath 
+    });
+  }
+
+  // Set proper headers for image serving
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
+  
+  // Set Content-Type based on file extension
+  const ext = path.extname(filePath).toLowerCase();
+  const mimeTypes = {
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.png': 'image/png',
+    '.gif': 'image/gif',
+    '.webp': 'image/webp'
+  };
+  
+  const contentType = mimeTypes[ext] || 'image/jpeg';
+  res.setHeader('Content-Type', contentType);
+  
+  console.log('🖼️ Serving profile picture:', { filename, filePath, contentType });
+  
+  // Use absolute path for sendFile
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      console.error('❌ File send error:', err.message);
+      if (!res.headersSent) {
+        res.status(500).json({ 
+          success: false,
+          error: 'Error sending file', 
+          message: err.message 
+        });
+      }
+    }
+  });
+});
+
 // Test endpoint to verify file serving
 app.get('/test-upload/:filename', (req, res) => {
   const filename = req.params.filename;
@@ -162,6 +216,9 @@ app.use('/api/auth', authRouter);
 app.use('/api/kyc', kycRouter);
 app.use('/api/user', userRouter);
 app.use('/api/support', supportRouter);
+app.use('/api/loans', loanRouter);
+app.use('/api/loan-requests', loanRequestRouter);
+app.use('/api/chat', chatRouter);
 
 app.use(handleInvalidRoute);
 export default app;

@@ -2,6 +2,8 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import prisma from '../lib/prisma.js';
+import path from 'path';
+import fs from 'fs';
 
 // Get user profile
 export const getUserProfile = async (req, res) => {
@@ -37,6 +39,67 @@ export const getUserProfile = async (req, res) => {
     });
   } catch (error) {
     console.error('Get profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+};
+
+// Upload profile picture
+export const uploadProfilePicture = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No file uploaded'
+      });
+    }
+
+    // Get current user to check for existing profile picture
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { profilePicture: true }
+    });
+
+    // Delete old profile picture if it exists
+    if (user?.profilePicture) {
+      const oldFilePath = path.join(process.cwd(), 'src/public/uploads/profile-pictures', path.basename(user.profilePicture));
+      if (fs.existsSync(oldFilePath)) {
+        fs.unlinkSync(oldFilePath);
+        console.log('🗑️ Deleted old profile picture:', oldFilePath);
+      }
+    }
+
+    // Create URL path for the uploaded file
+    const fileUrl = `/api/profile-pictures/${req.file.filename}`;
+
+    // Update user profile with new picture URL
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: { profilePicture: fileUrl },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        profilePicture: true,
+        isEmailVerified: true,
+        isKYCVerified: true,
+        updatedAt: true
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Profile picture uploaded successfully',
+      data: updatedUser
+    });
+  } catch (error) {
+    console.error('Upload profile picture error:', error);
     res.status(500).json({
       success: false,
       message: 'Internal server error',

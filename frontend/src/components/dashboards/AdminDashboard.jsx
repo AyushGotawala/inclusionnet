@@ -72,27 +72,27 @@ const AdminDashboard = () => {
         <p><span className="font-medium">PAN:</span> {kyc.pan_number}</p>
       </div>
         <div className="flex flex-wrap gap-2 mt-4">
-          <button
-            onClick={() => openKycModal(kyc, type)}
+        <button
+          onClick={() => openKycModal(kyc, type)}
             className="btn btn-secondary text-sm py-2"
-          >
-            <Eye className="h-4 w-4 mr-1" />
-            View Details
-          </button>
-          <button
-            onClick={() => handleVerifyKyc(kyc.userId, 'approved', type)}
+        >
+          <Eye className="h-4 w-4 mr-1" />
+          View Details
+        </button>
+        <button
+          onClick={() => handleVerifyKyc(kyc.userId, 'approved', type)}
             className="btn btn-success text-sm py-2"
-          >
-            <CheckCircle className="h-4 w-4 mr-1" />
-            Approve
-          </button>
-          <button
-            onClick={() => handleVerifyKyc(kyc.userId, 'rejected', type)}
+        >
+          <CheckCircle className="h-4 w-4 mr-1" />
+          Approve
+        </button>
+        <button
+          onClick={() => handleVerifyKyc(kyc.userId, 'rejected', type)}
             className="btn btn-danger text-sm py-2"
-          >
-            <X className="h-4 w-4 mr-1" />
-            Reject
-          </button>
+        >
+          <X className="h-4 w-4 mr-1" />
+          Reject
+        </button>
         </div>
       </div>
     </div>
@@ -106,8 +106,8 @@ const AdminDashboard = () => {
           <div className="card-body">
             <h2 className="text-3xl font-bold mb-2">Admin Control Center</h2>
             <p className="text-accent-100 text-lg">
-              Manage KYC verifications, monitor platform activity, and ensure compliance.
-            </p>
+            Manage KYC verifications, monitor platform activity, and ensure compliance.
+          </p>
           </div>
         </div>
 
@@ -115,11 +115,11 @@ const AdminDashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="card hover-lift">
             <div className="card-body">
-              <div className="flex items-center">
+            <div className="flex items-center">
                 <div className="flex-shrink-0 h-14 w-14 rounded-xl bg-primary-100 flex items-center justify-center">
                   <Users className="h-7 w-7 text-primary-600" />
-                </div>
-                <div className="ml-4">
+              </div>
+              <div className="ml-4">
                   <p className="text-sm font-semibold text-gray-600">Pending Borrower KYCs</p>
                   <p className="text-3xl font-bold text-gray-900 mt-1">{borrowerKycList.length}</p>
                 </div>
@@ -129,11 +129,11 @@ const AdminDashboard = () => {
 
           <div className="card hover-lift">
             <div className="card-body">
-              <div className="flex items-center">
+            <div className="flex items-center">
                 <div className="flex-shrink-0 h-14 w-14 rounded-xl bg-success-100 flex items-center justify-center">
                   <UserCheck className="h-7 w-7 text-success-600" />
-                </div>
-                <div className="ml-4">
+              </div>
+              <div className="ml-4">
                   <p className="text-sm font-semibold text-gray-600">Pending Lender KYCs</p>
                   <p className="text-3xl font-bold text-gray-900 mt-1">{lenderKycList.length}</p>
                 </div>
@@ -143,11 +143,11 @@ const AdminDashboard = () => {
 
           <div className="card hover-lift">
             <div className="card-body">
-              <div className="flex items-center">
+            <div className="flex items-center">
                 <div className="flex-shrink-0 h-14 w-14 rounded-xl bg-accent-100 flex items-center justify-center">
                   <FileText className="h-7 w-7 text-accent-600" />
-                </div>
-                <div className="ml-4">
+              </div>
+              <div className="ml-4">
                   <p className="text-sm font-semibold text-gray-600">Total KYCs</p>
                   <p className="text-3xl font-bold text-gray-900 mt-1">{borrowerKycList.length + lenderKycList.length}</p>
                 </div>
@@ -157,11 +157,11 @@ const AdminDashboard = () => {
 
           <div className="card hover-lift">
             <div className="card-body">
-              <div className="flex items-center">
+            <div className="flex items-center">
                 <div className="flex-shrink-0 h-14 w-14 rounded-xl bg-warning-100 flex items-center justify-center">
                   <AlertCircle className="h-7 w-7 text-warning-600" />
-                </div>
-                <div className="ml-4">
+              </div>
+              <div className="ml-4">
                   <p className="text-sm font-semibold text-gray-600">Urgent Reviews</p>
                   <p className="text-3xl font-bold text-gray-900 mt-1">0</p>
                 </div>
@@ -311,7 +311,7 @@ const AdminDashboard = () => {
           onApprove={handleApprove}
           onReject={handleReject}
           isLoading={isLoading}
-        />
+                />
       )}
     </Layout>
   );

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Layout from '../Layout';
-import { User, Edit2, Save, X, Phone, Mail, FileText, DollarSign, Briefcase, Calendar, CreditCard } from 'lucide-react';
+import { User, Edit2, Save, X, Phone, Mail, FileText, Briefcase, Calendar, CreditCard, Camera, Upload } from 'lucide-react';
 
 const BorrowerProfile = () => {
   const dispatch = useDispatch();
@@ -9,6 +9,10 @@ const BorrowerProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [profileData, setProfileData] = useState(null);
+  const [profilePictureUrl, setProfilePictureUrl] = useState(null);
+  const [profilePictureFile, setProfilePictureFile] = useState(null);
+  const [profilePicturePreview, setProfilePicturePreview] = useState(null);
+  const [uploadingPicture, setUploadingPicture] = useState(false);
   
   const [formData, setFormData] = useState({
     full_name: '',
@@ -31,7 +35,28 @@ const BorrowerProfile = () => {
 
   useEffect(() => {
     fetchProfile();
+    fetchUserProfile();
   }, []);
+
+  const fetchUserProfile = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:4000/api/user/profile', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.data?.profilePicture) {
+          setProfilePictureUrl(data.data.profilePicture);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
 
   const fetchProfile = async () => {
     try {
@@ -106,6 +131,7 @@ const BorrowerProfile = () => {
 
   const handleCancel = () => {
     setIsEditing(false);
+    setProfilePicturePreview(null);
     if (profileData) {
       setFormData({
         full_name: profileData.full_name || '',
@@ -128,6 +154,93 @@ const BorrowerProfile = () => {
     }
   };
 
+  const handleProfilePictureChange = (e) => {
+    try {
+      const file = e.target.files[0];
+      if (file) {
+        // Validate file type
+        if (!file.type.match('image.*')) {
+          alert('Please select an image file');
+          return;
+        }
+        // Validate file size (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          alert('File size must be less than 5MB');
+          return;
+        }
+        // Store file for upload
+        setProfilePictureFile(file);
+        // Create preview
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setProfilePicturePreview(reader.result);
+        };
+        reader.onerror = () => {
+          console.error('Error reading file');
+          alert('Error reading file. Please try again.');
+        };
+        reader.readAsDataURL(file);
+      }
+    } catch (error) {
+      console.error('Error handling profile picture change:', error);
+      alert('Error selecting file. Please try again.');
+    }
+  };
+
+  const handleUploadProfilePicture = async () => {
+    if (!profilePictureFile) return;
+
+    try {
+      setUploadingPicture(true);
+      const token = localStorage.getItem('token');
+      const formData = new FormData();
+      formData.append('profilePicture', profilePictureFile);
+
+      const response = await fetch('http://localhost:4000/api/user/profile/picture', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setProfilePictureUrl(data.data.profilePicture);
+        setProfilePicturePreview(null);
+        setProfilePictureFile(null);
+        // Update user in localStorage
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (user) {
+          user.profilePicture = data.data.profilePicture;
+          localStorage.setItem('user', JSON.stringify(user));
+        }
+        alert('Profile picture uploaded successfully!');
+      } else {
+        const error = await response.json();
+        alert(error.message || 'Failed to upload profile picture');
+      }
+    } catch (error) {
+      console.error('Error uploading profile picture:', error);
+      alert('Error uploading profile picture');
+    } finally {
+      setUploadingPicture(false);
+    }
+  };
+
+  const getProfilePictureUrl = () => {
+    if (profilePicturePreview) {
+      return profilePicturePreview;
+    }
+    if (profilePictureUrl) {
+      if (profilePictureUrl.startsWith('http')) {
+        return profilePictureUrl;
+      }
+      return `http://localhost:4000${profilePictureUrl}`;
+    }
+    return null;
+  };
+
   return (
     <Layout>
       <div className="min-h-screen bg-gray-50 py-8">
@@ -136,8 +249,27 @@ const BorrowerProfile = () => {
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <div className="h-16 w-16 bg-blue-100 rounded-full flex items-center justify-center">
-                  <User className="h-8 w-8 text-blue-600" />
+                <div className="relative">
+                  {getProfilePictureUrl() ? (
+                    <img
+                      src={getProfilePictureUrl()}
+                      alt="Profile"
+                      className="h-16 w-16 rounded-full object-cover border-2 border-blue-200"
+                    />
+                  ) : (
+                    <div className="h-16 w-16 bg-blue-100 rounded-full flex items-center justify-center">
+                      <User className="h-8 w-8 text-blue-600" />
+                    </div>
+                  )}
+                  <label className="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full p-1.5 cursor-pointer hover:bg-blue-700 transition-colors">
+                    <Camera className="h-4 w-4" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleProfilePictureChange}
+                      className="hidden"
+                    />
+                  </label>
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">Borrower Profile</h1>
@@ -145,6 +277,16 @@ const BorrowerProfile = () => {
                 </div>
               </div>
               <div className="flex space-x-2">
+                {profilePictureFile && (
+                  <button
+                    onClick={handleUploadProfilePicture}
+                    disabled={uploadingPicture}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 disabled:opacity-50"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    {uploadingPicture ? 'Uploading...' : 'Upload Picture'}
+                  </button>
+                )}
                 {isEditing ? (
                   <>
                     <button
@@ -340,7 +482,7 @@ const BorrowerProfile = () => {
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700 flex items-center">
-                    <DollarSign className="h-4 w-4 mr-1" />
+                    <span className="text-sm font-bold mr-1">₹</span>
                     Monthly Income (₹)
                   </label>
                   {isEditing ? (

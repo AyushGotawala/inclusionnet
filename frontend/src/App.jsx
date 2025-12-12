@@ -17,6 +17,14 @@ import BorrowerProfile from './components/profile/BorrowerProfile';
 import LenderProfile from './components/profile/LenderProfile';
 import ResetPassword from './components/profile/ResetPassword';
 import ReportIssue from './components/profile/ReportIssue';
+import LoanApplication from './components/loans/LoanApplication';
+import MyLoans from './components/loans/MyLoans';
+import ViewMatchingLenders from './components/loans/ViewMatchingLenders';
+import BrowseMatchingLoans from './components/loans/BrowseMatchingLoans';
+import BorrowerProfileForLender from './components/profile/BorrowerProfileForLender';
+import ChatInterface from './components/chat/ChatInterface';
+import LoanRequests from './components/requests/LoanRequests';
+import Messages from './components/messages/Messages';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
@@ -136,6 +144,78 @@ function AppContent() {
             element={
               <ProtectedRoute allowedRoles={['BORROWER', 'LENDER', 'ADMIN']}>
                 <ReportIssue />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/apply-loan" 
+            element={
+              <ProtectedRoute allowedRoles={['BORROWER']}>
+                <LoanApplication />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/my-loans" 
+            element={
+              <ProtectedRoute allowedRoles={['BORROWER']}>
+                <MyLoans />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/my-loans/:loanApplicationId/matching-lenders" 
+            element={
+              <ProtectedRoute allowedRoles={['BORROWER']}>
+                <ViewMatchingLenders />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/browse-matching-loans" 
+            element={
+              <ProtectedRoute allowedRoles={['LENDER']}>
+                <BrowseMatchingLoans />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/borrowers/:borrowerId/profile" 
+            element={
+              <ProtectedRoute allowedRoles={['LENDER']}>
+                <BorrowerProfileForLender />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/chat/:loanRequestId" 
+            element={
+              <ProtectedRoute allowedRoles={['BORROWER', 'LENDER']}>
+                <ChatInterface />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/loan-requests" 
+            element={
+              <ProtectedRoute allowedRoles={['BORROWER', 'LENDER']}>
+                <LoanRequests />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/messages" 
+            element={
+              <ProtectedRoute allowedRoles={['BORROWER', 'LENDER']}>
+                <Messages />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/messages/:loanRequestId" 
+            element={
+              <ProtectedRoute allowedRoles={['BORROWER', 'LENDER']}>
+                <Messages />
               </ProtectedRoute>
             } 
           />

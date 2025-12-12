@@ -280,6 +280,12 @@ export const lenderKYCValidator = [
     }
     return true;
   }),
+
+  // Interest Rate - required, must be between 5% and 12%
+  body("interest_rate")
+    .notEmpty().withMessage("Interest rate is required")
+    .isFloat({ min: 5, max: 12 }).withMessage("Interest rate must be between 5% and 12%"),
+
   (req,res,next)=>{
 
     const errors = validationResult(req);
