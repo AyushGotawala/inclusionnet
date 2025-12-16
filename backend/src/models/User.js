@@ -1,33 +1,61 @@
-import pool from "../config/db.js";
+import pkg from "@prisma/client";
+import { PrismaPg } from '@prisma/adapter-pg';
+import pg from 'pg';
+import dotenv from 'dotenv';
 
-export const createUser = async({name,email,phone,hashedPassword,role}) =>{
-    const result = await pool.query(
-        'INSERT INTO users (name, email, phone, password, role) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-        [name,email,phone,hashedPassword,role]
-    );
-    return result.rows[0];
-}
+// Load environment variables
+dotenv.config();
 
-export const findByEmailOrNameOrPhone = async (name,email) => {
-  const result = await pool.query(
-    'SELECT * FROM users WHERE LOWER(email) = LOWER($1) OR LOWER(name) = LOWER($2)',
-    [email, name]
-  );
-  return result.rows[0]; 
+const { PrismaClient } = pkg;
+const { Pool } = pg;
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg(pool);
+
+const prisma = new PrismaClient({ 
+    adapter,
+    errorFormat: 'pretty',
+    log: ['error', 'warn'],
+});
+
+export const createUser = async ({ name, email, phone, hashedPassword, role }) => {
+    const user = await prisma.user.create({
+        data: {
+            name,
+            email,
+            phone: phone ?? null,
+            password: hashedPassword,
+            role,
+        },
+    });
+    return user;
 };
 
-export const findByEmail = async(email) =>{
-    const result = await pool.query(
-        'SELECT * FROM users WHERE LOWER(email) = LOWER($1)',
-        [email]
-    )
-    return result.rows[0];
-}
+export const findByEmailOrNameOrPhone = async (name, email, phone) => {
+    const user = await prisma.user.findFirst({
+        where: {
+            OR: [
+                { email: { equals: email ?? "", mode: "insensitive" } },
+                { name: { equals: name ?? "", mode: "insensitive" } },
+                { phone: { equals: phone ?? "" } },
+            ],
+        },
+    });
+    return user;
+};
 
-export const findById = async(id)=>{
-    const result = await pool.query(
-        'SELECT * FROM users WHERE id = $1',
-        [id]
-    );
-    return result.rows[0];
-}
+export const findByEmail = async (email) => {
+    // Normalize email to lowercase for case-insensitive lookup
+    const normalizedEmail = email?.toLowerCase().trim();
+    const user = await prisma.user.findUnique({
+        where: { email: normalizedEmail },
+    });
+    return user;
+};
+
+export const findById = async (id) => {
+    const user = await prisma.user.findUnique({
+        where: { id: Number(id) },
+    });
+    return user;
+};

@@ -1,15 +1,15 @@
 import { body ,validationResult } from "express-validator";
 
 const namePattern = /^[a-zA-Z\s.-]{2,50}$/;
-const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,20}$/;
+const passwordPattern = /^.{6,20}$/; // Simplified for now
 
 const phoneRegex = /^[6-9]\d{9}$/; // Indian numbers
 
 export const validateSignUp = [
     body('name')
     .notEmpty().withMessage('Name is required')
-    .isLength({min:5}).withMessage('Name must be at least 5 characters')
-    .matches(namePattern).withMessage('Please Enter Valide name'),
+    .isLength({min:2}).withMessage('Name must be at least 2 characters')
+    .matches(namePattern).withMessage('Please Enter Valid name'),
     body('email')
     .notEmpty().withMessage('Email is required')
     .isEmail().withMessage('Please Enter Valide Email'),
@@ -18,12 +18,12 @@ export const validateSignUp = [
     .matches(phoneRegex).withMessage("Invalid phone number"),
     body('password')
     .notEmpty().withMessage('Password is Required')
-    .isLength({min : 5}).withMessage('Password must be at least 5 characters')
-    .matches(passwordPattern).withMessage('Please Enter Valide Password'),
+    .isLength({min : 6}).withMessage('Password must be at least 6 characters')
+    .matches(passwordPattern).withMessage('Password must be 6-20 characters'),
     body('role')
     .notEmpty().withMessage('Role is Required')
-    .isIn(['borrower', 'lender'])
-    .withMessage('Role must be either borrower or lender'),
+    .isIn(['BORROWER', 'LENDER', 'ADMIN'])
+    .withMessage('Role must be BORROWER, LENDER, or ADMIN'),
     (req,res,next)=>{
         const errors = validationResult(req);
         
@@ -40,8 +40,8 @@ export const validateLogin = [
     .isEmail().withMessage('Please Enter Valide Email'),
     body('password')
     .notEmpty().withMessage('Password is Required')
-    .isLength({min : 5}).withMessage('Password must be at least 5 characters')
-    .matches(passwordPattern).withMessage('Please Enter Valide Password'),
+    .isLength({min : 6}).withMessage('Password must be at least 6 characters')
+    .matches(passwordPattern).withMessage('Password must be 6-20 characters'),
     (req,res,next)=>{
         const errors = validationResult(req);
         
@@ -51,3 +51,22 @@ export const validateLogin = [
         next();
     }
 ]
+
+// Admin middleware - must be used after authMiddleware
+export const isAdmin = (req, res, next) => {
+    if (!req.user) {
+        return res.status(401).json({
+            success: false,
+            message: 'Authentication required'
+        });
+    }
+
+    if (req.user.role !== 'ADMIN') {
+        return res.status(403).json({
+            success: false,
+            message: 'Access denied. Admin privileges required.'
+        });
+    }
+
+    next();
+};
