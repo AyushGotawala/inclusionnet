@@ -248,3 +248,7 @@ model SupportTicketReply {
 
   @@index([ticketId])
 }
+
+generator erd {
+  provider = "prisma-erd-generator"
+}
