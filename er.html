@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ER Diagram - Loan Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            overflow: auto;
+            min-height: 100vh;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            padding: 15px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .diagram-container {
+            position: relative;
+            width: 100%;
+            min-height: 900px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            overflow: visible;
+            padding: 40px;
+        }
+
+        svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Modern Entity Boxes */
+        .entity {
+            position: absolute;
+            background: white;
+            border: 2px solid #2c3e50;
+            padding: 12px 20px;
+            font-weight: 600;
+            font-size: 12px;
+            color: #2c3e50;
+            z-index: 3;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 4px;
+        }
+
+        .entity-name {
+            font-weight: 700;
+            margin-bottom: 8px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #3498db;
+        }
+
+        .entity-attrs {
+            font-size: 10px;
+            line-height: 1.6;
+        }
+
+        .entity-attr {
+            display: block;
+        }
+
+        .entity-attr.key {
+            font-weight: 700;
+            color: #e74c3c;
+        }
+
+        /* Relationship Diamonds - POSITIONED AWAY FROM ENTITIES */
+        .relationship {
+            position: absolute;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border: 2px solid #c0392b;
+            width: 70px;
+            height: 70px;
+            transform: rotate(45deg);
+            z-index: 2;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .relationship span {
+            transform: rotate(-45deg);
+            font-weight: 700;
+            font-size: 9px;
+            color: white;
+            white-space: nowrap;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        /* Cardinality */
+        .cardinality {
+            position: absolute;
+            font-weight: 700;
+            font-size: 14px;
+            color: #e74c3c;
+            z-index: 4;
+            background: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        line {
+            stroke: #34495e;
+            stroke-width: 2.5;
+        }
+
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.95);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 9px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            z-index: 5;
+        }
+
+        .legend-title {
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+
+        .legend-item {
+            margin: 3px 0;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <div class="title">🏦 Loan Management System - Entity Relationship Diagram</div>
+    <div class="diagram-container">
+        <svg id="lines"></svg>
+        
+        <!-- User Entity (Top Center) -->
+        <div class="entity" style="top: 40px; left: 45%; width: 140px;">
+            <div class="entity-name">User</div>
+            <div class="entity-attrs">
+                <span class="entity-attr key">PK: id</span>
+                <span class="entity-attr">name, email, phone</span>
+                <span class="entity-attr">role, isKYCVerified</span>
+            </div>
+        </div>
+        
+        <!-- BorrowerProfile Entity (Left) -->
+        <div class="entity" style="top: 280px; left: 50px; width: 160px;">
+            <div class="entity-name">BorrowerProfile</div>
+            <div class="entity-attrs">
+                <span class="entity-attr key">PK: id</span>
+                <span class="entity-attr">FK: userId</span>
+                <span class="entity-attr">full_name, monthly_income</span>
+                <span class="entity-attr">creditScore, kyc_status</span>
+                <span class="entity-attr">aadhaar_number</span>
+            </div>
+        </div>
+        
+        <!-- LenderProfile Entity (Right) -->
+        <div class="entity" style="top: 280px; right: 50px; width: 160px;">
+            <div class="entity-name">LenderProfile</div>
+            <div class="entity-attrs">
+                <span class="entity-attr key">PK: id</span>
+                <span class="entity-attr">FK: userId</span>
+                <span class="entity-attr">available_funds</span>
+                <span class="entity-attr">interest_rate, kyc_status</span>
+                <span class="entity-attr">aadhar_number, pan</span>
+            </div>
+        </div>
+        
+        <!-- SupportTicket Entity (Middle Center) -->
+        <div class="entity" style="top: 280px; left: 41%; width: 170px;">
+            <div class="entity-name">SupportTicket</div>
+            <div class="entity-attrs">
+                <span class="entity-attr key">PK: id</span>
+                <span class="entity-attr">FK: userId</span>
+                <span class="entity-attr">ticketId, category</span>
+                <span class="entity-attr">priority, subject, status</span>
+            </div>
+        </div>
+        
+        <!-- LoanApplication Entity (Bottom Left) -->
+        <div class="entity" style="top: 600px; left: 30px; width: 170px;">
+            <div class="entity-name">LoanApplication</div>
+            <div class="entity-attrs">
+                <span class="entity-attr key">PK: id</span>
+                <span class="entity-attr">FK: borrowerId</span>
+                <span class="entity-attr">loanAmount, loanPurpose</span>
+                <span class="entity-attr">loanTenureMonths</span>
+                <span class="entity-attr">status, creditScore</span>
+            </div>
+        </div>
+        
+        <!-- LoanRequest Entity (Bottom Center-Left) -->
+        <div class="entity" style="top: 600px; left: 28%; width: 160px;">
+            <div class="entity-name">LoanRequest</div>
+            <div class="entity-attrs">
+                <span class="entity-attr key">PK: id</span>
+                <span class="entity-attr">FK: loanApplicationId</span>
+                <span class="entity-attr">FK: borrowerId, lenderId</span>
+                <span class="entity-attr">status, initiatedBy</span>
+                <span class="entity-attr">message</span>
+            </div>
+        </div>
+        
+        <!-- ChatMessage Entity (Bottom Center-Right) -->
+        <div class="entity" style="top: 600px; left: 52%; width: 160px;">
+            <div class="entity-name">ChatMessage</div>
+            <div class="entity-attrs">
+                <span class="entity-attr key">PK: id</span>
+                <span class="entity-attr">FK: loanRequestId</span>
+                <span class="entity-attr">FK: senderId, receiverId</span>
+                <span class="entity-attr">message, messageType</span>
+                <span class="entity-attr">isRead, readAt</span>
+            </div>
+        </div>
+        
+        <!-- SupportTicketReply Entity (Bottom Right) -->
+        <div class="entity" style="top: 600px; right: 30px; width: 180px;">
+            <div class="entity-name">SupportTicketReply</div>
+            <div class="entity-attrs">
+                <span class="entity-attr key">PK: id</span>
+                <span class="entity-attr">FK: ticketId, userId</span>
+                <span class="entity-attr">message, isFromUser</span>
+                <span class="entity-attr">createdAt</span>
+            </div>
+        </div>
+        
+        <!-- Relationships - POSITIONED IN GAPS BETWEEN ENTITIES -->
+        
+        <!-- User to BorrowerProfile - LEFT DIAGONAL -->
+        <div class="relationship" style="top: 160px; left: 180px;"><span>Has</span></div>
+        <div class="cardinality" style="top: 130px; left: 42%;">1</div>
+        <div class="cardinality" style="top: 250px; left: 18%;">0..1</div>
+        
+        <!-- User to LenderProfile - RIGHT DIAGONAL -->
+        <div class="relationship" style="top: 160px; right: 180px;"><span>Has</span></div>
+        <div class="cardinality" style="top: 130px; right: 16%;">1</div>
+        <div class="cardinality" style="top: 250px; right: 18%;">0..1</div>
+        
+        <!-- User to SupportTicket - CENTER -->
+        <div class="relationship" style="top: 160px; left: 47%;"><span>Creates</span></div>
+        <div class="cardinality" style="top: 130px; left: 50%;">1</div>
+        <div class="cardinality" style="top: 250px; left: 49%;">*</div>
+        
+        <!-- BorrowerProfile to LoanApplication - VERTICAL -->
+        <div class="relationship" style="top: 460px; left: 90px;"><span>Creates</span></div>
+        <div class="cardinality" style="top: 430px; left: 10%;">1</div>
+        <div class="cardinality" style="top: 570px; left: 10%;">*</div>
+        
+        <!-- LoanApplication to LoanRequest - HORIZONTAL -->
+        <div class="relationship" style="top: 630px; left: 230px;"><span>Generates</span></div>
+        <div class="cardinality" style="top: 590px; left: 20%;">1</div>
+        <div class="cardinality" style="top: 590px; left: 28%;">*</div>
+        
+        <!-- LoanRequest to ChatMessage - HORIZONTAL -->
+        <div class="relationship" style="top: 630px; left: 46%;"><span>Contains</span></div>
+        <div class="cardinality" style="top: 590px; left: 44%;">1</div>
+        <div class="cardinality" style="top: 590px; left: 54%;">*</div>
+        
+        <!-- LenderProfile to LoanRequest - DIAGONAL DOWN -->
+        <div class="relationship" style="top: 460px; right: 180px;"><span>Receives</span></div>
+        <div class="cardinality" style="top: 430px; right: 16%;">1</div>
+        <div class="cardinality" style="top: 570px; left: 42%;">*</div>
+        
+        <!-- SupportTicket to SupportTicketReply - DIAGONAL DOWN RIGHT -->
+        <div class="relationship" style="top: 460px; right: 320px;"><span>Has</span></div>
+        <div class="cardinality" style="top: 430px; left: 50%;">1</div>
+        <div class="cardinality" style="top: 570px; right: 20%;">*</div>
+        
+        <!-- User to ChatMessage (Sends) - LONG DIAGONAL -->
+        <div class="relationship" style="top: 160px; right: 320px;"><span>Sends</span></div>
+        <div class="cardinality" style="top: 130px; right: 30%;">1</div>
+        <div class="cardinality" style="top: 570px; left: 57%;">*</div>
+        
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-title">📋 Notation Guide</div>
+            <div class="legend-item">PK = Primary Key</div>
+            <div class="legend-item">FK = Foreign Key</div>
+            <div class="legend-item">1 = One</div>
+            <div class="legend-item">* = Many</div>
+            <div class="legend-item">0..1 = Optional (Zero or One)</div>
+        </div>
+        
+    </div>
+
+    <script>
+        const svg = document.getElementById('lines');
+        const container = document.querySelector('.diagram-container');
+        
+        function getCenter(element) {
+            const rect = element.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+            return {
+                x: rect.left - containerRect.left + rect.width / 2,
+                y: rect.top - containerRect.top + rect.height / 2
+            };
+        }
+        
+        function createLine(x1, y1, x2, y2) {
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', x1);
+            line.setAttribute('y1', y1);
+            line.setAttribute('x2', x2);
+            line.setAttribute('y2', y2);
+            svg.appendChild(line);
+        }
+        
+        function drawLines() {
+            svg.innerHTML = '';
+            
+            const entities = document.querySelectorAll('.entity');
+            const relationships = document.querySelectorAll('.relationship');
+            
+            // Get positions
+            const user = getCenter(entities[0]);
+            const borrower = getCenter(entities[1]);
+            const lender = getCenter(entities[2]);
+            const ticket = getCenter(entities[3]);
+            const loanApp = getCenter(entities[4]);
+            const loanReq = getCenter(entities[5]);
+            const chatMsg = getCenter(entities[6]);
+            const ticketReply = getCenter(entities[7]);
+            
+            const rel1 = getCenter(relationships[0]); // User-Borrower
+            const rel2 = getCenter(relationships[1]); // User-Lender
+            const rel3 = getCenter(relationships[2]); // User-Ticket
+            const rel4 = getCenter(relationships[3]); // Borrower-LoanApp
+            const rel5 = getCenter(relationships[4]); // LoanApp-LoanReq
+            const rel6 = getCenter(relationships[5]); // LoanReq-ChatMsg
+            const rel7 = getCenter(relationships[6]); // Lender-LoanReq
+            const rel8 = getCenter(relationships[7]); // Ticket-TicketReply
+            const rel9 = getCenter(relationships[8]); // User-ChatMsg
+            
+            // Draw lines
+            // User to Borrower
+            createLine(user.x, user.y, rel1.x, rel1.y);
+            createLine(rel1.x, rel1.y, borrower.x, borrower.y);
+            
+            // User to Lender
+            createLine(user.x, user.y, rel2.x, rel2.y);
+            createLine(rel2.x, rel2.y, lender.x, lender.y);
+            
+            // User to Ticket
+            createLine(user.x, user.y, rel3.x, rel3.y);
+            createLine(rel3.x, rel3.y, ticket.x, ticket.y);
+            
+            // Borrower to LoanApp
+            createLine(borrower.x, borrower.y, rel4.x, rel4.y);
+            createLine(rel4.x, rel4.y, loanApp.x, loanApp.y);
+            
+            // LoanApp to LoanReq
+            createLine(loanApp.x, loanApp.y, rel5.x, rel5.y);
+            createLine(rel5.x, rel5.y, loanReq.x, loanReq.y);
+            
+            // LoanReq to ChatMsg
+            createLine(loanReq.x, loanReq.y, rel6.x, rel6.y);
+            createLine(rel6.x, rel6.y, chatMsg.x, chatMsg.y);
+            
+            // Lender to LoanReq
+            createLine(lender.x, lender.y, rel7.x, rel7.y);
+            createLine(rel7.x, rel7.y, loanReq.x, loanReq.y);
+            
+            // Ticket to TicketReply
+            createLine(ticket.x, ticket.y, rel8.x, rel8.y);
+            createLine(rel8.x, rel8.y, ticketReply.x, ticketReply.y);
+            
+            // User to ChatMsg
+            createLine(user.x, user.y, rel9.x, rel9.y);
+            createLine(rel9.x, rel9.y, chatMsg.x, chatMsg.y);
+        }
+        
+        // Initial draw
+        setTimeout(drawLines, 100);
+        
+        // Redraw on window resize
+        window.addEventListener('resize', drawLines);
+        
+    </script>
+</body>
+</html>
