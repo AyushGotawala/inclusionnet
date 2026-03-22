@@ -38,10 +38,13 @@ export function authMiddleware(req, res, next) {
     // 5️⃣ Pass to next middleware
     next();
   } catch (err) {
-    console.error('JWT verification failed:', err.message);
+    // Avoid spamming logs when clients reuse an expired token (poll / reconnect)
+    if (err.name !== 'TokenExpiredError' && err.name !== 'JsonWebTokenError') {
+      console.error('JWT verification failed:', err.message);
+    }
     return res.status(401).json({ 
       success: false,
-      message: 'Invalid or expired token' 
+      message: err.name === 'TokenExpiredError' ? 'Session expired — please sign in again' : 'Invalid or expired token' 
     });
   }
 }

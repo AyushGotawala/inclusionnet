@@ -11,6 +11,8 @@ import {
 } from "../models/LenderProfile.js";
 
 import prisma from '../lib/prisma.js';
+import { kycPayloadToMlRow, creditLabelToScoreAndEligibility } from '../utils/kycToMlFeatures.js';
+import { predictCreditScore } from '../services/creditMlService.js';
 
 export const uploadBorrowerKYC = async (req, res, next) => {
   try {
@@ -49,6 +51,14 @@ export const uploadBorrowerKYC = async (req, res, next) => {
       pays_bills,
       types_of_bills, // should come as stringified array or array
       missed_utility_payments,
+      num_bank_accounts,
+      num_credit_cards,
+      num_credit_inquiries,
+      credit_mix,
+      payment_behaviour_credit,
+      interest_rate_avg,
+      changed_credit_limit,
+      num_of_active_loans,
     } = req.body;
 
     // Parse JSON strings if they come as strings
@@ -73,6 +83,22 @@ export const uploadBorrowerKYC = async (req, res, next) => {
     // Get uploaded files (Aadhaar and PAN) - Fixed field names
     const aadhaar_image = req.files?.["aadhar"]?.[0]?.filename || null;
     const pan_image = req.files?.["pan"]?.[0]?.filename || null;
+
+    let creditScore = null;
+    let mlCreditCategory = null;
+    let mlCanBorrow = null;
+    try {
+      const mlRow = kycPayloadToMlRow(req.body);
+      const pred = predictCreditScore(mlRow);
+      if (pred && pred.predicted_label) {
+        const mapped = creditLabelToScoreAndEligibility(pred.predicted_label);
+        creditScore = mapped.creditScore;
+        mlCreditCategory = mapped.mlCreditCategory;
+        mlCanBorrow = mapped.canBorrow;
+      }
+    } catch (mlErr) {
+      console.warn('ML credit prediction skipped:', mlErr?.message || mlErr);
+    }
 
     // Call your service function to create/update the KYC record
     const rows = await createBorrowerKYC({
@@ -103,12 +129,32 @@ export const uploadBorrowerKYC = async (req, res, next) => {
       pays_bills,
       types_of_bills: parsedTypesOfBills,
       missed_utility_payments,
+      creditScore,
+      mlCreditCategory,
+      mlCanBorrow,
+      numBankAccounts: num_bank_accounts,
+      numCreditCards: num_credit_cards,
+      numCreditInquiries: num_credit_inquiries,
+      creditMix: credit_mix,
+      paymentBehaviourCredit: payment_behaviour_credit,
     });
 
     return res.status(201).json({
       success: true,
       message: "Borrower KYC submitted successfully",
-      data: rows[0], 
+      data: rows[0],
+      mlPrediction:
+        mlCreditCategory != null
+          ? {
+              creditCategory: mlCreditCategory,
+              creditScore,
+              canBorrow: mlCanBorrow,
+              message:
+                mlCanBorrow === false
+                  ? "Based on the credit model, your profile is currently assessed as high risk for new borrowing. You may still proceed with admin review."
+                  : "Based on the credit model, you appear eligible to borrow subject to KYC approval.",
+            }
+          : null,
     });
   } catch (error) {
     console.error('Upload Borrower KYC Error:', error);

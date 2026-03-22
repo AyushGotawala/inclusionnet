@@ -23,8 +23,10 @@ const authenticateSocket = (socket, next) => {
     socket.userRole = decoded.role;
     next();
   } catch (error) {
-    console.error('Socket authentication error:', error);
-    next(new Error('Authentication error: Invalid token'));
+    if (error.name !== 'TokenExpiredError') {
+      console.error('Socket authentication error:', error.message);
+    }
+    next(new Error('Authentication error: Invalid or expired token'));
   }
 };
 

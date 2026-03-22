@@ -3,12 +3,22 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { uploadBorrowerKYC, clearError, clearUploadSuccess } from '@/store/slices/kycSlice';
 import Layout from '../Layout';
-import { Upload, FileText, AlertCircle, CheckCircle, User } from 'lucide-react';
+import { Upload, FileText, AlertCircle, CheckCircle, User, Sparkles } from 'lucide-react';
+
+const PAYMENT_BEHAVIOUR_OPTIONS = [
+  { value: 'High_spent_Small_value_payments', label: 'Higher spending, smaller payments' },
+  { value: 'High_spent_Medium_value_payments', label: 'Higher spending, medium payments' },
+  { value: 'High_spent_Large_value_payments', label: 'Higher spending, larger payments' },
+  { value: 'Low_spent_Small_value_payments', label: 'Lower spending, smaller payments' },
+  { value: 'Low_spent_Medium_value_payments', label: 'Lower spending, medium payments' },
+  { value: 'Low_spent_Large_value_payments', label: 'Lower spending, larger payments' },
+];
 
 const BorrowerKYC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isLoading, error, uploadSuccess } = useSelector((state) => state.kyc);
+  const { isLoading, error, uploadSuccess, currentKyc } = useSelector((state) => state.kyc);
+  const mlPrediction = currentKyc?.mlPrediction;
   
   const [formData, setFormData] = useState({
     full_name: '',
@@ -35,6 +45,14 @@ const BorrowerKYC = () => {
     pays_bills: false,
     types_of_bills: [],
     missed_utility_payments: '',
+    num_bank_accounts: '2',
+    num_credit_cards: '1',
+    num_credit_inquiries: '2',
+    credit_mix: 'Standard',
+    payment_behaviour_credit: 'High_spent_Small_value_payments',
+    interest_rate_avg: '12',
+    changed_credit_limit: '10',
+    num_of_active_loans: '1',
   });
 
   const [files, setFiles] = useState({
@@ -122,6 +140,14 @@ const BorrowerKYC = () => {
       credit_card_repayment_behavior: formData.credit_card_repayment_behavior || '',
       approx_monthly_expenses: formData.approx_monthly_expenses || '',
       missed_utility_payments: formData.missed_utility_payments || '',
+      num_bank_accounts: formData.num_bank_accounts || '',
+      num_credit_cards: formData.num_credit_cards || '',
+      num_credit_inquiries: formData.num_credit_inquiries || '',
+      credit_mix: formData.credit_mix || '',
+      payment_behaviour_credit: formData.payment_behaviour_credit || '',
+      interest_rate_avg: formData.interest_rate_avg || '',
+      changed_credit_limit: formData.changed_credit_limit || '',
+      num_of_active_loans: formData.num_of_active_loans || '',
       // Convert arrays to JSON strings (empty array becomes empty string)
       major_spending_categories: formData.major_spending_categories.length > 0 
         ? JSON.stringify(formData.major_spending_categories) 
@@ -153,6 +179,25 @@ const BorrowerKYC = () => {
             <p className="text-gray-600 mb-6 text-lg">
             Your KYC documents have been submitted for review. You will be notified once they are verified.
           </p>
+          {mlPrediction && (
+            <div className={`mb-6 p-4 rounded-xl border text-left ${mlPrediction.canBorrow ? 'border-success-200 bg-success-50' : 'border-amber-200 bg-amber-50'}`}>
+              <div className="flex items-center gap-2 font-semibold text-gray-900 mb-2">
+                <Sparkles className="h-5 w-5 text-primary-600" />
+                Credit assessment (ML)
+              </div>
+              <p className="text-sm text-gray-700 mb-1">
+                <span className="font-medium">Category:</span> {mlPrediction.creditCategory}
+                {mlPrediction.creditScore != null && (
+                  <span className="ml-2">· Score: {mlPrediction.creditScore}</span>
+                )}
+              </p>
+              <p className="text-sm text-gray-700">
+                <span className="font-medium">Borrowing signal:</span>{' '}
+                {mlPrediction.canBorrow ? 'Eligible (subject to admin KYC approval)' : 'Higher risk — admin review required'}
+              </p>
+              <p className="text-xs text-gray-600 mt-2">{mlPrediction.message}</p>
+            </div>
+          )}
           <Link
             to="/borrower-dashboard"
               className="btn btn-primary inline-flex items-center"
@@ -471,6 +516,116 @@ const BorrowerKYC = () => {
                     <option value="partial">Pay partial amount</option>
                     <option value="no_credit_card">No credit card</option>
                   </select>
+                </div>
+                {formData.previous_loans && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Number of active / recent loans</label>
+                    <input
+                      type="number"
+                      name="num_of_active_loans"
+                      min="0"
+                      value={formData.num_of_active_loans}
+                      onChange={handleInputChange}
+                      className="input"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* ML credit features — aligned with training dataset */}
+            <div>
+              <h4 className="text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+                <Sparkles className="h-6 w-6 text-primary-500" />
+                Credit profile (for ML assessment)
+              </h4>
+              <p className="text-sm text-gray-600 mb-6">
+                These fields feed the credit scoring model so we can estimate eligibility. Use your best estimate — values are also saved with your KYC.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Bank accounts (count)</label>
+                  <input
+                    type="number"
+                    name="num_bank_accounts"
+                    min="0"
+                    value={formData.num_bank_accounts}
+                    onChange={handleInputChange}
+                    className="input"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Credit cards (count)</label>
+                  <input
+                    type="number"
+                    name="num_credit_cards"
+                    min="0"
+                    value={formData.num_credit_cards}
+                    onChange={handleInputChange}
+                    className="input"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Credit inquiries (last year, approx.)</label>
+                  <input
+                    type="number"
+                    name="num_credit_inquiries"
+                    min="0"
+                    value={formData.num_credit_inquiries}
+                    onChange={handleInputChange}
+                    className="input"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Credit mix (types of credit you use)</label>
+                  <select
+                    name="credit_mix"
+                    value={formData.credit_mix}
+                    onChange={handleInputChange}
+                    className="input"
+                  >
+                    <option value="Standard">Standard (mixed)</option>
+                    <option value="Good">Good</option>
+                    <option value="Bad">Weak / limited</option>
+                    <option value="_">Unknown / prefer not to say</option>
+                  </select>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Payment behaviour pattern</label>
+                  <select
+                    name="payment_behaviour_credit"
+                    value={formData.payment_behaviour_credit}
+                    onChange={handleInputChange}
+                    className="input"
+                  >
+                    {PAYMENT_BEHAVIOUR_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Avg. interest rate on loans (%)</label>
+                  <input
+                    type="number"
+                    name="interest_rate_avg"
+                    min="0"
+                    max="50"
+                    step="0.1"
+                    value={formData.interest_rate_avg}
+                    onChange={handleInputChange}
+                    className="input"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Credit limit change (recent, ₹)</label>
+                  <input
+                    type="number"
+                    name="changed_credit_limit"
+                    min="0"
+                    value={formData.changed_credit_limit}
+                    onChange={handleInputChange}
+                    className="input"
+                  />
                 </div>
               </div>
             </div>
