@@ -249,6 +249,7 @@ model SupportTicketReply {
   @@index([ticketId])
 }
 
-generator erd {
-  provider = "prisma-erd-generator"
-}
+// Uncomment to generate ERD (requires Chrome/Chromium for mermaid-cli)
+// generator erd {
+//   provider = "prisma-erd-generator"
+// }
