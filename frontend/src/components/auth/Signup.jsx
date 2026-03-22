@@ -221,12 +221,19 @@ const Signup = () => {
                   id="phone"
                   name="phone"
                   type="tel"
+                  required
                   value={formData.phone}
                   onChange={handleChange}
                   className="input pl-10"
-                  placeholder="Enter your phone number"
+                  placeholder="9876543210"
+                  autoComplete="tel"
+                  inputMode="numeric"
+                  maxLength={14}
                 />
               </div>
+              <p className="mt-1 text-xs text-gray-500">
+                10-digit Indian mobile (6–9 first digit). +91 or spaces are OK — we normalize them.
+              </p>
             </div>
 
             {/* Password */}

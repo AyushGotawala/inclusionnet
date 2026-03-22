@@ -8,7 +8,9 @@ export default defineConfig({
   migrations: {
     path: "prisma/migrations",
   },
+  // Use DIRECT_URL for db push / migrate — PgBouncer (pooler) does not support all DDL.
+  // App runtime still uses DATABASE_URL via src/lib/prisma.js
   datasource: {
-    url: env("DATABASE_URL"),
+    url: env("DIRECT_URL"),
   },
 });

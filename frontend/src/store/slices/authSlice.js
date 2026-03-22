@@ -31,7 +31,13 @@ export const signup = createAsyncThunk(
       });
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Signup failed');
+      const data = error.response?.data;
+      const msg =
+        data?.message ||
+        (Array.isArray(data?.errors) && data.errors.map((e) => e.msg).join(' ')) ||
+        error.message ||
+        'Signup failed';
+      return rejectWithValue(msg);
     }
   }
 );
@@ -51,7 +57,13 @@ export const login = createAsyncThunk(
       
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Login failed');
+      const data = error.response?.data;
+      const msg =
+        data?.message ||
+        (Array.isArray(data?.errors) && data.errors.map((e) => e.msg).join(' ')) ||
+        error.message ||
+        'Login failed';
+      return rejectWithValue(msg);
     }
   }
 );
