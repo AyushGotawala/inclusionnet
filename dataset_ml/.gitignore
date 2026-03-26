@@ -1,0 +1,4 @@
+artifacts/*.joblib
+artifacts/*.h5
+artifacts/*.pkl
+artifacts/*.csv

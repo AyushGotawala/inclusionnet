@@ -62,6 +62,14 @@ export const createBorrowerKYC = async ({
   pays_bills,
   types_of_bills,
   missed_utility_payments,
+  creditScore,
+  mlCreditCategory,
+  mlCanBorrow,
+  numBankAccounts,
+  numCreditCards,
+  numCreditInquiries,
+  creditMix,
+  paymentBehaviourCredit,
 }) => {
   const existing = await prisma.borrowerProfile.findUnique({
     where: { userId },
@@ -105,6 +113,14 @@ export const createBorrowerKYC = async ({
     pays_bills: toBool(pays_bills),
     types_of_bills: toStringOrJson(types_of_bills),
     missed_utility_payments: toNumber(missed_utility_payments),
+    creditScore: toNumber(creditScore),
+    mlCreditCategory: mlCreditCategory ?? null,
+    mlCanBorrow: typeof mlCanBorrow === "boolean" ? mlCanBorrow : null,
+    numBankAccounts: toNumber(numBankAccounts),
+    numCreditCards: toNumber(numCreditCards),
+    numCreditInquiries: toNumber(numCreditInquiries),
+    creditMix: creditMix ?? null,
+    paymentBehaviourCredit: paymentBehaviourCredit ?? null,
     kyc_status: "pending",
   };
 

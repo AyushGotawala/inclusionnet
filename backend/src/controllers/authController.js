@@ -94,10 +94,11 @@ export const Login = async(req,res,next) => {
             });
         }
         
+        const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
         const token = jwt.sign(
             { id: user.id, name: user.name, phone: user.phone, email: user.email, role: user.role },
             JWT_SECRET,
-            { expiresIn: '1h' }
+            { expiresIn }
         )
 
         console.log(`Login successful for user: ${user.email}, role: ${user.role}`);

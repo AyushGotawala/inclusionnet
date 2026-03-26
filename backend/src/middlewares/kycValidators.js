@@ -52,6 +52,7 @@ export const borrowerKycValidator = [
     .custom(val => Number(val) > 0).withMessage("Monthly income must be greater than 0"),
 
   body("years_of_job_stability")
+    .optional({ checkFalsy: true })
     .isInt({ min: 0 }).withMessage("Years of job stability must be 0 or greater"),
 
   // Loan & Credit History
@@ -222,6 +223,37 @@ export const borrowerKycValidator = [
       return false;
     })
     .withMessage("Missed utility payments must be a number >= 0"),
+
+  // ML credit model (optional — defaults applied server-side if omitted)
+  body("num_bank_accounts")
+    .optional()
+    .custom((val) => val === undefined || val === null || val === '' || (!isNaN(Number(val)) && Number(val) >= 0 && Number(val) <= 50))
+    .withMessage("num_bank_accounts must be between 0 and 50"),
+  body("num_credit_cards")
+    .optional()
+    .custom((val) => val === undefined || val === null || val === '' || (!isNaN(Number(val)) && Number(val) >= 0 && Number(val) <= 50))
+    .withMessage("num_credit_cards must be between 0 and 50"),
+  body("num_credit_inquiries")
+    .optional()
+    .custom((val) => val === undefined || val === null || val === '' || (!isNaN(Number(val)) && Number(val) >= 0 && Number(val) <= 100))
+    .withMessage("num_credit_inquiries must be between 0 and 100"),
+  body("credit_mix")
+    .optional()
+    .custom((val) => val === undefined || val === null || val === '' || ['_', 'Good', 'Standard', 'Bad'].includes(String(val)))
+    .withMessage("credit_mix must be _, Good, Standard, or Bad"),
+  body("payment_behaviour_credit").optional().isString(),
+  body("interest_rate_avg")
+    .optional()
+    .custom((val) => val === undefined || val === null || val === '' || (!isNaN(Number(val)) && Number(val) >= 0 && Number(val) <= 50))
+    .withMessage("interest_rate_avg must be between 0 and 50"),
+  body("changed_credit_limit")
+    .optional()
+    .custom((val) => val === undefined || val === null || val === '' || (!isNaN(Number(val)) && Number(val) >= 0))
+    .withMessage("changed_credit_limit must be numeric and >= 0"),
+  body("num_of_active_loans")
+    .optional()
+    .custom((val) => val === undefined || val === null || val === '' || (!isNaN(Number(val)) && Number(val) >= 0 && Number(val) <= 50))
+    .withMessage("num_of_active_loans must be between 0 and 50"),
 
   // Validation result handler
   (req, res, next) => {
