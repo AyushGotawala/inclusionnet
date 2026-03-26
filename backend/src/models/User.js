@@ -1,22 +1,4 @@
-import pkg from "@prisma/client";
-import { PrismaPg } from '@prisma/adapter-pg';
-import pg from 'pg';
-import dotenv from 'dotenv';
-
-// Load environment variables
-dotenv.config();
-
-const { PrismaClient } = pkg;
-const { Pool } = pg;
-
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const adapter = new PrismaPg(pool);
-
-const prisma = new PrismaClient({ 
-    adapter,
-    errorFormat: 'pretty',
-    log: ['error', 'warn'],
-});
+import prisma from '../lib/prisma.js';
 
 export const createUser = async ({ name, email, phone, hashedPassword, role }) => {
     const user = await prisma.user.create({

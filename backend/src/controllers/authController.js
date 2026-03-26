@@ -1,12 +1,9 @@
+import "dotenv/config";
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { createUser ,findByEmail, findByEmailOrNameOrPhone } from '../models/User.js';
 
-const JWT_SECRET = process.env.JWT_SECRET;
-
-if (!JWT_SECRET) {
-    console.error('⚠️  JWT_SECRET is not set in environment variables!');
-}
+const getJwtSecret = () => process.env.JWT_SECRET;
 
 export const SignUp = async(req,res,next) =>{
     try{
@@ -86,6 +83,7 @@ export const Login = async(req,res,next) => {
             })
         }
         
+        const JWT_SECRET = getJwtSecret();
         if (!JWT_SECRET) {
             console.error('JWT_SECRET is not set in environment variables');
             return res.status(500).json({
