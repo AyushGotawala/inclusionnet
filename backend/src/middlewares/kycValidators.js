@@ -97,14 +97,16 @@ export const borrowerKycValidator = [
     .optional()
     .custom((val) => {
       if (val === undefined || val === null || val === '') return true;
-      if (typeof val === 'boolean') return true;
+      if (typeof val === 'number') return Number.isInteger(val) && val >= 0;
       if (typeof val === 'string') {
-        const lower = val.toLowerCase();
-        return lower === 'true' || lower === 'false' || lower === 'yes' || lower === 'no';
+        const trimmed = val.trim();
+        if (trimmed === '') return true;
+        const num = Number(trimmed);
+        return !isNaN(num) && Number.isInteger(num) && num >= 0;
       }
       return false;
     })
-    .withMessage("Loan defaults must be true, false, yes, or no"),
+    .withMessage("Loan defaults (last 12 months) must be a number >= 0"),
 
   body("average_emi_per_month")
     .optional()
@@ -118,14 +120,16 @@ export const borrowerKycValidator = [
     .optional()
     .custom((val) => {
       if (val === undefined || val === null || val === '') return true;
-      if (typeof val === 'boolean') return true;
+      if (typeof val === 'number') return Number.isInteger(val) && val >= 0;
       if (typeof val === 'string') {
-        const lower = val.toLowerCase();
-        return lower === 'true' || lower === 'false' || lower === 'yes' || lower === 'no';
+        const trimmed = val.trim();
+        if (trimmed === '') return true;
+        const num = Number(trimmed);
+        return !isNaN(num) && Number.isInteger(num) && num >= 0;
       }
       return false;
     })
-    .withMessage("Missed EMI payments must be true, false, yes, or no"),
+    .withMessage("Missed EMI payments must be a number >= 0"),
 
   body("credit_card_repayment_behavior")
     .optional()

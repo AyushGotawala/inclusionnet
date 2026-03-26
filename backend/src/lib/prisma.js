@@ -7,12 +7,18 @@ const { Pool } = pg;
 // Create a singleton instance of Prisma Client with adapter
 const globalForPrisma = global;
 
+const connectionString = process.env.DATABASE_URL;
+const isSupabase = typeof connectionString === 'string' && connectionString.includes('supabase.com');
+
 // Initialize PostgreSQL pool
 const pool = new Pool({ 
-  connectionString: process.env.DATABASE_URL,
+  connectionString,
   max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  // Supabase is remote; 2s is often too tight
+  connectionTimeoutMillis: 10000,
+  // Supabase typically requires SSL
+  ...(isSupabase ? { ssl: { rejectUnauthorized: false } } : {}),
 });
 
 // Create adapter
