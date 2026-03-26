@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
@@ -7,16 +8,21 @@ const { Pool } = pg;
 // Create a singleton instance of Prisma Client with adapter
 const globalForPrisma = global;
 
-const connectionString = process.env.DATABASE_URL;
+// Prefer DIRECT_URL to avoid pgBouncer connection edge cases
+const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;
+if (!connectionString) {
+  console.error('❌ DATABASE_URL is missing. Check backend/.env');
+}
 const isSupabase = typeof connectionString === 'string' && connectionString.includes('supabase.com');
 
 // Initialize PostgreSQL pool
 const pool = new Pool({ 
   connectionString,
-  max: 20,
+  // Supabase pooler is best-effort; too many concurrent connections can be refused.
+  max: 10,
   idleTimeoutMillis: 30000,
   // Supabase is remote; 2s is often too tight
-  connectionTimeoutMillis: 10000,
+  connectionTimeoutMillis: 30000,
   // Supabase typically requires SSL
   ...(isSupabase ? { ssl: { rejectUnauthorized: false } } : {}),
 });
